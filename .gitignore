@@ -66,3 +66,7 @@ env/dev/env/config.cljs
 # Figwheel
 #
 figwheel_server.log
+
+
+
+.nrepl-port
