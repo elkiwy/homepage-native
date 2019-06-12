@@ -2,7 +2,7 @@
   (:require [reagent.core :as r :refer [atom]]
             [re-frame.core :refer [subscribe dispatch dispatch-sync]]
             ;[homepage-native.events]
-            [homepage-native.db :as db]
+            [homepage-native.shared.db :as db]
 
       ))
 

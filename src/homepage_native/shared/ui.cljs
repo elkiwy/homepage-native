@@ -1,5 +1,5 @@
 (ns homepage-native.shared.ui
-    (:require [reagent.core :as r :refer [atom]]
+    (:require [reagent.core :as r]
               [homepage-native.shared.style :as style]
               [homepage-native.shared.utils :as utils]))
 
@@ -8,6 +8,8 @@
 ; ------------------------------------------------------------
 ; External libraries
 (def gradient (r/adapt-react-class (.-default (js/require "react-native-linear-gradient"))))
+
+
 
 ; ------------------------------------------------------------
 ; Components
@@ -22,16 +24,52 @@
 
 
 
+; ------------------------------------------------------------
+; Animations
+(def animated            (.-Animated utils/react))
+(def animated-value      (.-Value animated))
+(def animated-view       (r/adapt-react-class (.-View animated)))
+
+
+
+(defn anim-new-value
+    "Creates a new animated value object with the animated value from react and a reagent atom."
+    [value]
+    {:anim (new animated-value value) :atom (r/atom value)})
+
+
+
+(defn anim-set-value
+    "Changes the value for the animated value object for both the value and the atom."
+    [obj newValue]
+    (reset! (:atom obj) newValue)
+    (-> (:anim obj)
+        (animated.timing #js {:toValue newValue})
+        (.start)))
+
+
+
+(defn anim-get-value
+    "Gets the atom value from the animated value object, this always represents the current target value."
+    [obj]
+    @(:atom obj))
+        
+
 
 ; ------------------------------------------------------------
 ; Custom ui elements
-(defn custom-button [label extraStyle f]
+(defn custom-button
+    "A predefined button with default style."
+    [label extraStyle f]
     (fn [] [touchable-highlight {:style (merge {:background-color style/col-black :padding 10 :border-radius 5
                                                :marginTop 8 :marginBottom 8 :marginLeft "auto" :marginRight "auto"} extraStyle) :on-press f} 
             [text {:style {:color style/col-white :text-align "center" :font-weight "bold"}} label]]))
 
 
-(defn custom-text-input [myAtom extraStyle & [default password]]
+
+(defn custom-text-input
+    "A predefined text input with default style."
+    [myAtom extraStyle & [default password]]
     (fn [] [text-input {:value @myAtom :placeholder (str default)
                        :autoCapitalize "none"
                        :secureTextEntry (if (nil? password) false password)
@@ -40,9 +78,16 @@
                        :onChangeText (fn [text] (reset! myAtom (clojure.string/trim text)))}]))
 
 
-(defn custom-header1 [label & [extraStyle]]
+
+(defn custom-header1
+    "A predefined big header with default style."
+    [myAtom extraStyle & [default password]]
+    [label & [extraStyle]]
     (fn [] [text {:style (merge (style/style-text style/col-black "800" 30) {:margin-top 0 :margin-bottom 4 :text-align "center"})} label]))
     
 
-(defn custom-header2 [label & [extraStyle]]
+
+(defn custom-header2
+    "A predefined smaller header with default style."
+    [label & [extraStyle]]
     (fn [] [text {:style (merge (style/style-text style/col-black "600" 26) {:margin-top 0 :margin-bottom 4 :text-align "center"})} label]))

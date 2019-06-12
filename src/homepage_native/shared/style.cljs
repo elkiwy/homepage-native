@@ -16,14 +16,18 @@
 
 ; ------------------------------------------------------------
 ; Styles
-(defn style-text [& [col weight size]]
+(defn style-text
+    "A style for any text component that sets font color and default size."
+    [& [col weight size]]
     {:font-family "Fira Code"
      :font-weight (if (nil? weight) "400" weight)
      :color       (if (nil? col)    (if (= @theme :Dark) col-white col-black) col)
      :font-size   (if (nil? size)   16 size)})
 
 
-(defn style-light-background-and-border [& [col]]
+(defn style-light-background-and-border
+    "A style for items having a background view with theme color."
+    [& [col]]
     {:border-color col-black :border-width 0
      :background-color (if (nil? col) (if (= @theme :Dark) col-black col-white) col)
      :overflow "hidden"

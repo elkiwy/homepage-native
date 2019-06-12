@@ -18,10 +18,10 @@
 
 
 
-;Takes the subreddits map and outputs the map without the jsons
-(defn discard-json [subreddits]
-    (loop [subs (seq subreddits)
-           result []]
+(defn discard-json
+    "Takes the subreddits map and outputs the map without the jsons"
+    [subreddits]
+    (loop [subs (seq subreddits) result []]
         (if (empty? subs)
             (into {} result)
             (recur (rest subs)

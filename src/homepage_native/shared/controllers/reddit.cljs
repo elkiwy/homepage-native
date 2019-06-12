@@ -5,7 +5,7 @@
             [homepage-native.shared.style :as style]
             [homepage-native.shared.ui :as ui]
             [homepage-native.shared.networking :as net]
-            [homepage-native.db]))
+            [homepage-native.shared.db]))
 
 
 
