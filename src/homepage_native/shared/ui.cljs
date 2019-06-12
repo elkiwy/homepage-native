@@ -67,6 +67,14 @@
 
 
 
+(defn custom-button-clear
+    "A predefined button without the background."
+    [label extraStyle f]
+    (fn [] [touchable-opacity {:style {:background-color nil :marginTop 8 :marginBottom 8 :marginLeft "auto" :marginRight "auto"} :on-press f} 
+            [text {:style (merge {:color style/col-black :text-align "center" :font-weight "bold"} extraStyle)} label]]))
+
+
+
 (defn custom-text-input
     "A predefined text input with default style."
     [myAtom extraStyle & [default password]]
@@ -81,7 +89,6 @@
 
 (defn custom-header1
     "A predefined big header with default style."
-    [myAtom extraStyle & [default password]]
     [label & [extraStyle]]
     (fn [] [text {:style (merge (style/style-text style/col-black "800" 30) {:margin-top 0 :margin-bottom 4 :text-align "center"})} label]))
     
@@ -91,3 +98,7 @@
     "A predefined smaller header with default style."
     [label & [extraStyle]]
     (fn [] [text {:style (merge (style/style-text style/col-black "600" 26) {:margin-top 0 :margin-bottom 4 :text-align "center"})} label]))
+
+
+
+
