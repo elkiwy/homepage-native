@@ -1,0 +1,32 @@
+{
+  "name": "homepageNative",
+  "interface": "reagent6",
+  "envRoots": {
+    "dev": "env/dev",
+    "prod": "env/prod"
+  },
+  "modules": [
+    "@react-native-community/async-storage"
+  ],
+  "imageDirs": [
+    "images"
+  ],
+  "platforms": {
+    "ios": {
+      "host": "localhost",
+      "modules": [
+        "react-native",
+        "react-native-linear-gradient",
+        "./images/cljs.png"
+      ]
+    },
+    "android": {
+      "host": "localhost",
+      "modules": [
+        "react-native",
+        "./images/cljs.png"
+      ]
+    }
+  },
+  "autoRequire": false
+}
