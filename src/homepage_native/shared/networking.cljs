@@ -19,6 +19,7 @@
 
 
 
+
 (defn http-get-json
     "Get json data from an HTTP/GET call to an Url and call the callback after."
     [url callback]

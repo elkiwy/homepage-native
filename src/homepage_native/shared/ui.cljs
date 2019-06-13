@@ -63,7 +63,7 @@
     [label extraStyle f]
     (fn [] [touchable-highlight {:style (merge {:background-color style/col-black :padding 10 :border-radius 5
                                                :marginTop 8 :marginBottom 8 :marginLeft "auto" :marginRight "auto"} extraStyle) :on-press f} 
-            [text {:style {:color style/col-white :text-align "center" :font-weight "bold"}} label]]))
+            [text {:style (merge (style/style-text) {:color style/col-white :text-align "center" :font-weight "bold"})} label]]))
 
 
 
@@ -71,7 +71,7 @@
     "A predefined button without the background."
     [label extraStyle f]
     (fn [] [touchable-opacity {:style {:background-color nil :marginTop 8 :marginBottom 8 :marginLeft "auto" :marginRight "auto"} :on-press f} 
-            [text {:style (merge {:color style/col-black :text-align "center" :font-weight "bold"} extraStyle)} label]]))
+            [text {:style (merge (style/style-text) {:color style/col-black :text-align "center" :font-weight "bold"} extraStyle)} label]]))
 
 
 

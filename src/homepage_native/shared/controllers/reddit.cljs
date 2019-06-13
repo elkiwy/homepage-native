@@ -44,9 +44,15 @@
             (cond
                 (empty? @subredditDataAtom)
                     (do (net/http-get-json test-url (fn [data] (reset! subredditDataAtom data)) )
-                        [ui/text "Loading..."])
+                       [ui/custom-header2 "Loading..."])
             :else
                 (let [posts (:children (:data @subredditDataAtom))]
+
+
                     [ui/view  {:style {:height utils/sh}}
                         [ui/flat-list {:data (clj->js posts) :render-item reddit-post :key-extractor (fn [item index] (str index))
-                                    :ListHeaderComponent (r/create-element (r/reactify-component (fn [] [title "Reddit"])))}]])))))
+                                          :ListHeaderComponent (r/create-element (r/reactify-component (fn [] [title "Reddit"])))}]]
+
+
+
+                    )))))

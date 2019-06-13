@@ -17,7 +17,7 @@
     ([data]
         (when (not (nil? data))
             (-> (.setItem async-storage "app-db" (.stringify js/JSON (clj->js (update-in data [:subreddits] utils/discard-json))))
-                (.then #(js/alert "Saved"))))))
+                (.then #())))))
 
 
 
@@ -65,10 +65,7 @@
 
 ; ------------------------------------------------------------
 ; Events
-(rf/reg-event-db :set-greeting 
-    (fn [db [_ value]] (assoc db :greeting value)))
-
-
+;init
 (rf/reg-event-db :initialize 
     (fn [_ _] {:page-current :Favorites
               :account {:name "" :pass "" :sync false}
@@ -79,7 +76,7 @@
               :rss-data {} ;String - Data map
              })) 
 
-
+;replace
 (rf/reg-event-db :replace-db
     (fn [db [_ new-db full-replace?]]
         (let [cp (:page-current db)]
@@ -87,7 +84,13 @@
                 (update-db-and-save false #(assoc new-db :page-current (:page-current new-db)))
                 (update-db-and-save false #(assoc new-db :page-current cp))))))
 
+;navigation
+(rf/reg-event-db :page-changed
+    (fn [db [_ newPage]] (update-db-and-save false #(assoc db :page-current newPage))))
 
+
+
+;account
 (rf/reg-event-db :account-updated
     (fn [db [_ name pass sync]]
         (update-db-and-save true #(assoc db :account {:name name :pass pass :sync sync}))))
@@ -95,11 +98,12 @@
 
 
 ; ------------------------------------------------------------
-; Subscriptions
-(rf/reg-sub :get-greeting
-    (fn [db _] (:greeting db)))
+;navigation
+(rf/reg-sub :page-current
+    (fn [db _] (:page-current db)))
 
 
+;account
 (rf/reg-sub :account
     (fn [db _] (:account db)))
 

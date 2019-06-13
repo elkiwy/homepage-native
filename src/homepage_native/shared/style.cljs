@@ -8,8 +8,12 @@
 ; Colors
 (def col-white "#f8f4f0ff")
 (def col-black "#000408e0")
-(def col-accent1 (r/atom "#ff0000"))
-(def col-accent2 (r/atom "#00ff00"))
+
+(let [rand-hue (rand-int 359)]
+    (def col-accent1 (r/atom (str "hsl(" rand-hue ", 30%, 70%)")))
+    (def col-accent2 (r/atom (str "hsl(" (+ rand-hue 80) ", 30%, 70%)")))
+)
+
 (def theme (r/atom :Dark))
 
 
