@@ -2,6 +2,7 @@
     (:require [reagent.core :as r]
               [re-frame.core :as rf]
               [re-frame.db :as rfdb]
+              [homepage-native.shared.networking :as networking]
               [homepage-native.shared.utils :as utils]))
 
 
@@ -41,7 +42,8 @@
         (fn [data]
             (if (nil? data)
                 (rf/dispatch-sync [:initialize])
-                (rf/dispatch-sync [:replace-db data true])))))
+                (rf/dispatch-sync [:replace-db data true]))
+            )))
 
 
 
@@ -51,7 +53,7 @@
     (let [result (updateFunc)]
         (save-state result)
         (when sync
-            (homepage-native.shared.networking/updateConfig result))
+            (networking/updateConfig result))
         result))
 
 
@@ -80,6 +82,7 @@
 (rf/reg-event-db :replace-db
     (fn [db [_ new-db full-replace?]]
         (let [cp (:page-current db)]
+            (println "got replace-db event")
             (if full-replace?
                 (update-db-and-save false #(assoc new-db :page-current (:page-current new-db)))
                 (update-db-and-save false #(assoc new-db :page-current cp))))))
