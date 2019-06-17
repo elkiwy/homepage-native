@@ -23,6 +23,7 @@
 
 
 
+
 (defn sidebar [posAnimVal]
     (let [s {:marginTop 20 :color style/col-white :font-size 22 :font-weight "600"}
           f (fn [page] (do (rf/dispatch [:page-changed page]) (println (str page)) (ui/anim-set-value sidebar-animvalue-x (* -1 sidebarW))))]
@@ -43,24 +44,28 @@
                 ;Gradient background
                 [ui/gradient {:style {:position "absolute" :left 0 :top 0 :width "100%" :height "100%"} :colors [@style/col-accent1 @style/col-accent2] :start {:x 0 :y 0} :end {:x 1 :y 1}}]
 
+
                 ;Main working area
                 [ui/safe-area-view {:style {:width utils/sw :flex 1}}
                     ;Workaround for the safe area insets
                     [ui/view {:ref (fn [me] (reset! topInsetView me)) :style {:height 0}
-                                :onLayout (fn [e] (.measure @topInsetView (fn [_ y _ _ _ _] (reset! topInset y))))}]
+                              :onLayout (fn [e] (.measure @topInsetView (fn [_ y _ _ _ _] (reset! topInset y))))}]
+
 
                     ;Main screen
-                    (let [p ((keyword @page) pages)]
-                        (if (nil? p)
-                            [ui/text (str "No view ready for " @page)]
-                            [p]))
+                    (when (not (nil? @page))
+                        (let [p ((keyword @page) pages)]
+                            (if (nil? p)
+                                [ui/custom-header1 (str "No view ready for " @page)]
+                                [p])))
 
                     ;Sidebar
                     [sidebar (:anim sidebar-animvalue-x) ]
                     [ui/view {:style {:width (* utils/sw 0.1) :position "absolute" :margin-top (- @topInset 10) :margin-left (* utils/sw 0.05)}}
                         [ui/custom-button-clear "=" {:color style/col-black :font-size 30}
                             #(ui/anim-set-value sidebar-animvalue-x (if (= (ui/anim-get-value sidebar-animvalue-x) 0) (* -1 sidebarW) 0))]]
-                ]])))
+                ]
+            ])))
 
 
 
@@ -71,7 +76,6 @@
 
 (defn init []
     (println "init")
-    (rf/dispatch-sync [:initialize])
     (db/load-state)
         
     ;(net/try-download-state)
