@@ -28,3 +28,7 @@
                 (concat result [[(first (first subs)) {:json ""}]])))))
 
 
+
+
+(defn dissoc-in [m path key]
+    (update-in m path dissoc key))

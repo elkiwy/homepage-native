@@ -99,6 +99,24 @@
         (update-db-and-save true #(assoc db :account {:name name :pass pass :sync sync}))))
 
 
+;Reddit
+(rf/reg-event-db :subreddit-selected-changed
+    (fn [db [_ newSubreddit]]
+        (update-db-and-save false #(assoc db :subreddit-selected-name newSubreddit))))
+
+(rf/reg-event-db :subreddit-added
+    (fn [db [_ sub]]
+        (update-db-and-save true #(assoc-in db [:subreddits sub] {:json ""}))))
+
+(rf/reg-event-db :subreddit-removed
+    (fn [db [_ sub]]
+        (update-db-and-save true #(utils/dissoc-in db [:subreddits] sub))))
+
+(rf/reg-event-db :subreddit-fetched-data
+    (fn [db [_ sub newdata]]
+        (update-db-and-save false #(assoc-in db [:subreddits sub :json] newdata))))
+
+
 
 ; ------------------------------------------------------------
 ;navigation
@@ -111,3 +129,15 @@
     (fn [db _] (:account db)))
 
 
+;reddit
+(rf/reg-sub :subreddits
+    (fn [db _] (:subreddits db)))
+
+(rf/reg-sub :subreddit-selected-name
+    (fn [db _] (:subreddit-selected-name db)))
+
+(rf/reg-sub :subreddit-selected-data
+    :<- [:subreddit-selected-name]
+    :<- [:subreddits]
+    (fn [[name subreddits] _]
+        (get-in subreddits [name :json])))
