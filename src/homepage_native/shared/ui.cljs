@@ -21,6 +21,8 @@
 (def image               (r/adapt-react-class (.-Image utils/react)))
 (def touchable-highlight (r/adapt-react-class (.-TouchableHighlight utils/react)))
 (def touchable-opacity   (r/adapt-react-class (.-TouchableOpacity utils/react)))
+(def picker              (r/adapt-react-class (.-Picker utils/react)))
+(def pickerItem          (r/adapt-react-class (.-Item (.-Picker utils/react))))
 
 
 
@@ -29,6 +31,7 @@
 (def animated            (.-Animated utils/react))
 (def animated-value      (.-Value animated))
 (def animated-view       (r/adapt-react-class (.-View animated)))
+(def easing              (.-Easing utils/react))
 
 
 
@@ -44,7 +47,7 @@
     [obj newValue]
     (reset! (:atom obj) newValue)
     (-> (:anim obj)
-        (animated.timing #js {:toValue newValue})
+        (animated.timing #js {:toValue newValue :duration 500 :easing (.out easing (.poly easing 6))})
         (.start)))
 
 
@@ -90,14 +93,14 @@
 (defn custom-header1
     "A predefined big header with default style."
     [label & [extraStyle]]
-    (fn [] [text {:style (merge (style/style-text style/col-black "800" 30) {:margin-top 0 :margin-bottom 4 :text-align "center"})} label]))
+    (fn [] [text {:style (merge (style/style-text style/col-black "800" 30) {:margin-top 0 :margin-bottom 4 :text-align "center"} extraStyle)} label]))
     
 
 
 (defn custom-header2
     "A predefined smaller header with default style."
     [label & [extraStyle]]
-    (fn [] [text {:style (merge (style/style-text style/col-black "600" 26) {:margin-top 0 :margin-bottom 4 :text-align "center"})} label]))
+    (fn [] [text {:style (merge (style/style-text style/col-black "600" 26) {:margin-top 0 :margin-bottom 4 :text-align "center"} extraStyle)} label]))
 
 
 
