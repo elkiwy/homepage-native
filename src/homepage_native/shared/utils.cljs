@@ -32,3 +32,6 @@
 
 (defn dissoc-in [m path key]
     (update-in m path dissoc key))
+
+(defn remove-from-vector [coll item]
+    (into [] (remove #(= % item) coll)))
