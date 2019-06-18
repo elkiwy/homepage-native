@@ -17,7 +17,7 @@
     ([] (save-state @rfdb/app-db))
     ([data]
         (when (not (nil? data))
-            (-> (.setItem async-storage "app-db" (.stringify js/JSON (clj->js (update-in data [:subreddits] utils/discard-json))))
+            (-> (.setItem async-storage "app-db" (.stringify js/JSON (clj->js data)))
                 (.then #())))))
 
 
@@ -65,13 +65,17 @@
 
 
 
+
+
+
+
 ; ------------------------------------------------------------
 ; Events
 ;init
 (rf/reg-event-db :initialize 
     (fn [_ _] {:page-current :Favorites
               :account {:name "" :pass "" :sync false}
-              :subreddits {} :subreddit-selected-name ""
+              :reddit {:selected "" :subreddits []}
               :favs {}
               :rss-feeds [] ;Vector of Name-Link pairs
               :rss-selected "" ;String
@@ -100,21 +104,19 @@
 
 
 ;Reddit
-(rf/reg-event-db :subreddit-selected-changed
+(rf/reg-event-db :reddit-selected-changed
     (fn [db [_ newSubreddit]]
-        (update-db-and-save false #(assoc db :subreddit-selected-name newSubreddit))))
+        (update-db-and-save false #(assoc-in db [:reddit :selected] newSubreddit))))
 
-(rf/reg-event-db :subreddit-added
+(rf/reg-event-db :reddit-added-subreddit
     (fn [db [_ sub]]
-        (update-db-and-save true #(assoc-in db [:subreddits sub] {:json ""}))))
+        (update-db-and-save true #(update-in db [:reddit :subreddits] conj sub))))
 
-(rf/reg-event-db :subreddit-removed
+(rf/reg-event-db :reddit-removed-subreddit
     (fn [db [_ sub]]
-        (update-db-and-save true #(utils/dissoc-in db [:subreddits] sub))))
+        (update-db-and-save true #(update-in db [:reddit :subreddits] utils/remove-from-vector sub))))
 
-(rf/reg-event-db :subreddit-fetched-data
-    (fn [db [_ sub newdata]]
-        (update-db-and-save false #(assoc-in db [:subreddits sub :json] newdata))))
+
 
 
 
@@ -130,14 +132,9 @@
 
 
 ;reddit
-(rf/reg-sub :subreddits
-    (fn [db _] (:subreddits db)))
+(rf/reg-sub :reddit-subreddits ;A vector of strings
+    (fn [db _] (:subreddits (:reddit db))))
 
-(rf/reg-sub :subreddit-selected-name
-    (fn [db _] (:subreddit-selected-name db)))
+(rf/reg-sub :reddit-selected ;A string
+    (fn [db _] (:selected (:reddit db))))
 
-(rf/reg-sub :subreddit-selected-data
-    :<- [:subreddit-selected-name]
-    :<- [:subreddits]
-    (fn [[name subreddits] _]
-        (get-in subreddits [name :json])))

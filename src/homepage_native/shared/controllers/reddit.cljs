@@ -11,9 +11,10 @@
 
 (def reddit-base-url "https://www.reddit.com/r/")
 
-(def subSelectionYMin (* utils/sh 0.2))
+(def subSelectionYMin (* utils/sh 0))
 (def subSelectionYMax (* utils/sh 1.0))
-(def subSelectionY (ui/anim-new-value subSelectionYMax))
+(defonce subSelectionY     (ui/anim-new-value subSelectionYMax))
+(defonce subSelectionAlpha (ui/anim-new-value 0))
 
 
 
@@ -32,7 +33,11 @@
 
 
 (defn toggle-selection-view []
-    (ui/anim-set-value subSelectionY (if (= (ui/anim-get-value subSelectionY) subSelectionYMin) subSelectionYMax subSelectionYMin)))
+    (let [current (ui/anim-get-value subSelectionY)
+          toHide? (= current subSelectionYMin)]
+        (ui/anim-set-value subSelectionAlpha (if toHide? 0 0.95))
+        (ui/anim-set-value subSelectionY (if toHide? subSelectionYMax subSelectionYMin))
+))
 
 
 (defn title [name]
@@ -48,19 +53,60 @@
         (r/reactify-component
             (fn []
                 (let [subName (str (:item (js->clj item :keywordize-keys true)))]
-                    [ui/custom-button-clear subName {:color style/col-white} #(do (rf/dispatch-sync [:subreddit-selected-changed subName]) (toggle-selection-view))])))))
+                    [ui/view {:style {:borderBottomWidth 1 :borderBottomColor (str style/col-white "20") :paddingBottom 15 :paddingTop 15}}
+                        [ui/custom-button-clear subName {:color style/col-white :font-size 24}
+                            #(do (rf/dispatch-sync [:reddit-selected-changed subName])
+                                 (toggle-selection-view))]])))))
+
+
+(defn settings-view []
+    (let [newSubName (r/atom "")]
+        (fn []
+            [ui/view {:style {}}
+
+                ;Add subreddit
+                [ui/custom-header1 "Reddit settings" {:color style/col-white}]
+                [ui/custom-header2 "Add a subreddit" {:color style/col-white}]
+
+
+                [ui/custom-text-input newSubName {} "subreddit-name"]
+                [ui/custom-button "Add" {} #(rf/dispatch [:reddit-added-subreddit @newSubName])]
 
 
 
+                ;Remove fav
+                [ui/custom-header2 "Remove a subreddit" {:color style/col-white}]
 
-(:children (:data @(rf/subscribe [:subreddit-selected-data])))
-(mapv #(name (first %)) (seq @(rf/subscribe [:subreddits])))
+
+                ;Convert this to actionsheet
+
+                [ui/picker {:selectedValue "1" :style {:backgroundColor "white" :color "black" :margin-left 10 :height 500 :width 300}
+                            :onValueChange (fn [value index] (println (str value "," index)))}
+
+                    [ui/pickerItem {:label "cose" :value "1"}]
+                    [ui/pickerItem {:label "cose2" :value "2"}]
+
+
+                    ]
+
+
+                ;[:select {:on-change #(reset! remSubNameAtom (-> % .-target .-value))} :defaultValue ""
+                    ;[:option  ""]
+                    ;(for [subname (seq @subs)]
+                        ;^{:key (first subname)} [:option (first subname)])]
+;
+                ;[:input {:type "button" :value "Remove"
+                                        ;:on-click #(rf/dispatch [:subreddit-removed @remSubNameAtom])}]
+                ]
+        
+        )))
+
 
 
 (defn main-controller []
-    (let [subredditsAtom (rf/subscribe [:subreddits])
-          subredditDataAtom (rf/subscribe [:subreddit-selected-data])
-          subredditNameAtom (rf/subscribe [:subreddit-selected-name])]
+    (let [subredditsAtom (rf/subscribe [:reddit-subreddits])
+          subredditDataAtom (r/atom nil)
+          subredditNameAtom (rf/subscribe [:reddit-selected])]
         (fn []
             [ui/view 
                 (cond
@@ -68,7 +114,7 @@
                         [ui/custom-header2 "No subreddit selected."]
 
                     (empty? @subredditDataAtom)
-                        (do (net/http-get-json (str reddit-base-url @subredditNameAtom ".json") (fn [data] (rf/dispatch [:subreddit-fetched-data @subredditNameAtom data])) )
+                        (do (net/http-get-json (str reddit-base-url @subredditNameAtom ".json") (fn [data] (reset! subredditDataAtom data)) )
                         [ui/custom-header2 "Loading..."])
 
                     :else
@@ -79,8 +125,15 @@
                         )
                 )
 
-                [ui/animated-view {:style {:backgroundColor style/col-black :position "absolute" :left 0 :top (:anim subSelectionY) :width utils/sw :height (* utils/sh 0.8)}}
-                    (let [subs (mapv #(name (first %)) (seq @subredditsAtom))]
-                        [ui/flat-list {:data subs
-                                       :render-item subs-selection
-                                       :key-extractor (fn [item index] (str index))}])]])))
+
+                [ui/animated-view {:pointerEvents "none"
+                                   :style {:position "absolute" :left 0 :top -100 :width utils/sw :height (+ utils/sh 100)
+                                           :backgroundColor style/col-black-full :opacity (:anim subSelectionAlpha) }}]
+                [ui/animated-view {:style {:backgroundColor style/col-black :opacity 0.85 :position "absolute" :left 0 :top (:anim subSelectionY) :width utils/sw :height utils/sh}}
+                        (let [subs @subredditsAtom]
+                            [ui/flat-list {:data subs
+                                           :render-item subs-selection
+                                           :key-extractor (fn [item index] (str index))}])]
+                
+
+                    ])))
