@@ -6,8 +6,9 @@
 
 ; ------------------------------------------------------------
 ; Colors
-(def col-white "#f8f4f0ff")
+(def col-white "#f8f4f0")
 (def col-black "#000408e0")
+(def col-black-full "#000408")
 
 (let [rand-hue (rand-int 359)]
     (def col-accent1 (r/atom (str "hsl(" rand-hue ", 30%, 70%)")))
