@@ -67,7 +67,7 @@
     [label extraStyle f]
     (fn [] [touchable-highlight {:style (merge {:background-color style/col-black :padding 10 :border-radius 5
                                                :marginTop 8 :marginBottom 8 :marginLeft "auto" :marginRight "auto"} extraStyle) :on-press f} 
-            [text {:style (merge (style/style-text) {:color style/col-white :text-align "center" :font-weight "bold"})} label]]))
+            [text {:style (merge (style/style-text) {:color style/col-white :text-align "center" :font-weight "bold"})}   (if (string? label) label @label)]]))
 
 
 
