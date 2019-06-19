@@ -103,12 +103,12 @@
                     ;Page settings
                     (when (not (nil? @page))
                         (let [p ((keyword @page) settings)]
-                            (if (nil? p)
-                                [ui/view [ui/custom-header2 "No settings for this page"]]
-                                [ui/animated-view {:style {:backgroundColor (str style/col-black-full "f0") :position "absolute" :paddingTop @topInset 
+                            [ui/animated-view {:style {:backgroundColor (str style/col-black-full "f0") :position "absolute" :paddingTop @topInset 
                                                            :top 0 :left (:anim setting-animvalue-x) :width utils/sw :height utils/sh}}
-                                    [p]
-                                    [back-button toggle-settings]])))
+                                (if (nil? p)
+                                    [ui/view [ui/custom-header2 "No settings for this page" {:color style/col-white}]]
+                                    [p])
+                                [back-button toggle-settings]]))
 
                     ;sidebar
                     [sidebar (:anim sidebar-animvalue-x) ]
