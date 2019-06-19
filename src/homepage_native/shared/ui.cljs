@@ -64,10 +64,10 @@
 ; Custom ui elements
 (defn custom-button
     "A predefined button with default style."
-    [label extraStyle f]
+    [label extraStyle f & [textStyle]]
     (fn [] [touchable-highlight {:style (merge {:background-color style/col-black :padding 10 :border-radius 5
                                                :marginTop 8 :marginBottom 8 :marginLeft "auto" :marginRight "auto"} extraStyle) :on-press f} 
-            [text {:style (merge (style/style-text) {:color style/col-white :text-align "center" :font-weight "bold"})}   (if (string? label) label @label)]]))
+            [text {:style (merge (style/style-text) {:color style/col-white :text-align "center" :font-weight "bold"} textStyle)}   (if (string? label) label @label)]]))
 
 
 
@@ -85,7 +85,7 @@
     (fn [] [text-input {:value @myAtom :placeholder (str default)
                        :autoCapitalize "none"
                        :secureTextEntry (if (nil? password) false password)
-                       :style (merge {:margin 8 :padding 10 :marginLeft "auto" :marginRight "auto"
+                       :style (merge (style/style-text style/col-dark-gray "400" 14) {:margin 8 :padding 10 :marginLeft "auto" :marginRight "auto"
                                       :border-radius 5 :backgroundColor style/col-white} extraStyle)
                        :onChangeText (fn [text] (reset! myAtom (clojure.string/trim text)))}]))
 
@@ -106,11 +106,12 @@
 
 (defn custom-selection-input 
     "A custom button that triggers an action sheet selection. The button always shows the atom value."
-    [myAtom itemsAtom & [extraStyle]]
+    [myAtom itemsAtom & [extraStyle textStyle]]
     (fn [] [custom-button myAtom (if (nil? extraStyle) {} extraStyle)
               #(.showActionSheetWithOptions actionsheet
                    (clj->js {:options @itemsAtom })
-                   (fn [buttonIndex] (reset! myAtom (nth @itemsAtom buttonIndex))))]))
+                   (fn [buttonIndex] (reset! myAtom (nth @itemsAtom buttonIndex))))
+              (merge {:textAlign "left"} (style/style-text style/col-dark-gray "400" 14) (if (nil? textStyle) {} textStyle)) ]))
 
 
 
