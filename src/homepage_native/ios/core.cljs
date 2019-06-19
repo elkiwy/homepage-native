@@ -26,16 +26,42 @@
 
 
 
-(defn sidebar [posAnimVal]
-    (let [s {:marginTop 20 :color style/col-white :font-size 22 :font-weight "600"}
-          f (fn [page] (do (rf/dispatch [:page-changed page]) (println (str page)) (ui/anim-set-value sidebar-animvalue-x (* -1 sidebarW))))]
+(defn toggle-settings []
+    (ui/anim-set-value setting-animvalue-x (if (= (ui/anim-get-value setting-animvalue-x) 0) utils/sw 0)))
+    
+
+(defn toggle-sidebar []
+    (ui/anim-set-value sidebar-animvalue-x (if (= (ui/anim-get-value sidebar-animvalue-x) 0) (* -1 sidebarW) 0)))
+
+
+(defn back-button [f]
+    (fn []
+        [ui/view {:style {:width (* utils/sw 0.05) :height 50 :position "absolute"
+                          :margin-top (- @topInset 10) :margin-left (* utils/sw 0.05) }}
+            [ui/custom-button-clear "<" {:color style/col-white :font-size 30} f]]))
+
+
+(defn sidebar-item [label key & [last?]]
+    (let [f (fn [page] (do (rf/dispatch [:page-changed page]) (ui/anim-set-value sidebar-animvalue-x (* -1 sidebarW))))]
         (fn []
-            [ui/animated-view {:style {:position "absolute" :left posAnimVal :width sidebarW :height utils/sh
-                                       :paddingTop @topInset :backgroundColor (str style/col-black-full "fc")}}
-                [ui/custom-button-clear "Favorites" s #(f :Favorites)]
-                [ui/custom-button-clear "Reddit"    s #(f :Reddit)]
-                [ui/custom-button-clear "Rss"       s #(f :Rss)]
-                [ui/custom-button-clear "Account"   s #(f :Account)]])))
+            [ui/view {:style {:border-bottom-color style/col-medium-gray :border-bottom-width (if last? 0 1) :margin-left 15 :margin-right 15}}
+                [ui/custom-button-clear label {:marginTop 10 :marginBottom 10 :color style/col-white :font-size 22 :font-weight "600"} #(f key)]])))
+
+(defn sidebar [posAnimVal]
+    (fn []
+        [ui/animated-view {:style {:position "absolute" :left posAnimVal :width sidebarW :height utils/sh
+                                   :paddingTop @topInset :backgroundColor (str style/col-black-full "fc")
+                                   :border-right-color style/col-medium-gray :border-right-width 1 }}
+            ;Header
+            [ui/view {:style {:border-bottom-color @style/col-accent1 :border-bottom-width 1 :padding-bottom 15 :margin-left 15 :margin-right 15}}
+                [ui/custom-header1 "Pages" {:color style/col-white}]]
+            ;Items
+            [sidebar-item "Favorites" :Favorites]
+            [sidebar-item "Reddit" :Reddit]
+            [sidebar-item "Rss" :Rss]
+            [sidebar-item "Account" :Account true]
+            [back-button toggle-sidebar]]))
+
 
 
 
@@ -61,6 +87,19 @@
                                 [ui/custom-header1 (str "No view ready for " @page)]
                                 [p])))
 
+                    ;Sidebar button
+                    [ui/view {:style {:width (* utils/sw 0.1) :position "absolute" :margin-top (- @topInset 10) :margin-left (* utils/sw 0.05)}}
+                        [ui/custom-button-clear "=" {:color style/col-black :font-size 30}
+                            toggle-sidebar]]
+
+
+                    ;Page settings button
+                    [ui/view {:style {:width (* utils/sw 0.1) :position "absolute" :margin-top (- @topInset 10) :margin-left (* utils/sw 0.85)}}
+                        [ui/custom-button-clear "+" {:color style/col-black :font-size 30}
+                            toggle-settings]]
+                    
+
+
                     ;Page settings
                     (when (not (nil? @page))
                         (let [p ((keyword @page) settings)]
@@ -68,18 +107,11 @@
                                 [ui/view [ui/custom-header2 "No settings for this page"]]
                                 [ui/animated-view {:style {:backgroundColor (str style/col-black-full "f0") :position "absolute" :paddingTop @topInset 
                                                            :top 0 :left (:anim setting-animvalue-x) :width utils/sw :height utils/sh}}
-                                    [p]])))
+                                    [p]
+                                    [back-button toggle-settings]])))
 
-                    ;Sidebar
+                    ;sidebar
                     [sidebar (:anim sidebar-animvalue-x) ]
-                    [ui/view {:style {:width (* utils/sw 0.1) :position "absolute" :margin-top (- @topInset 10) :margin-left (* utils/sw 0.05)}}
-                        [ui/custom-button-clear "=" {:color style/col-black :font-size 30}
-                            #(ui/anim-set-value sidebar-animvalue-x (if (= (ui/anim-get-value sidebar-animvalue-x) 0) (* -1 sidebarW) 0))]]
-
-
-                    [ui/view {:style {:width (* utils/sw 0.1) :position "absolute" :margin-top (- @topInset 10) :margin-left (* utils/sw 0.85)}}
-                        [ui/custom-button-clear "+" {:color style/col-black :font-size 30}
-                            #(ui/anim-set-value setting-animvalue-x (if (= (ui/anim-get-value setting-animvalue-x) 0) utils/sw 0))]]
                 ]
             ])))
 
