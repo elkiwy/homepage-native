@@ -23,6 +23,7 @@
 (def touchable-opacity   (r/adapt-react-class (.-TouchableOpacity utils/react)))
 (def picker              (r/adapt-react-class (.-Picker utils/react)))
 (def pickerItem          (r/adapt-react-class (.-Item (.-Picker utils/react))))
+(def actionsheet         (.-ActionSheetIOS utils/react))
 
 
 
@@ -101,6 +102,26 @@
     "A predefined smaller header with default style."
     [label & [extraStyle]]
     (fn [] [text {:style (merge (style/style-text style/col-black "600" 26) {:margin-top 0 :margin-bottom 4 :text-align "center"} extraStyle)} label]))
+
+
+(defn custom-selection-input 
+    "A custom button that triggers an action sheet selection. The button always shows the atom value."
+    [myAtom items & [extraStyle]]
+    (let [options {:options ["cancel" "remove"] :destructiveButtonIndex 1 :cancelButtonIndex 0}
+          action (fn [buttonIndex] (println buttonIndex))
+          f #(.showActionSheetWithOptions actionsheet (clj->js options) action)]
+    (fn [] [custom-button @myAtom (if (nil? extraStyle) {} extraStyle) f])))
+
+
+
+
+
+
+
+
+
+
+
 
 
 
