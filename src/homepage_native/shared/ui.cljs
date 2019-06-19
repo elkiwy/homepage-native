@@ -106,11 +106,11 @@
 
 (defn custom-selection-input 
     "A custom button that triggers an action sheet selection. The button always shows the atom value."
-    [myAtom items & [extraStyle]]
-    (let [options {:options ["cancel" "remove"] :destructiveButtonIndex 1 :cancelButtonIndex 0}
-          action (fn [buttonIndex] (println buttonIndex))
-          f #(.showActionSheetWithOptions actionsheet (clj->js options) action)]
-    (fn [] [custom-button @myAtom (if (nil? extraStyle) {} extraStyle) f])))
+    [myAtom itemsAtom & [extraStyle]]
+    (fn [] [custom-button myAtom (if (nil? extraStyle) {} extraStyle)
+              #(.showActionSheetWithOptions actionsheet
+                   (clj->js {:options @itemsAtom })
+                   (fn [buttonIndex] (reset! myAtom (nth @itemsAtom buttonIndex))))]))
 
 
 
