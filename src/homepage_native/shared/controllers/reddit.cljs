@@ -58,49 +58,38 @@
                             #(do (rf/dispatch-sync [:reddit-selected-changed subName])
                                  (toggle-selection-view))]])))))
 
+(defn get-first-subreddit []
+    (let [subreddits (rf/subscribe [:reddit-subreddits])]
+        (if (empty? @subreddits) "No subreddits." (first @subreddits))))
 
 (defn settings-view []
-    (let [newSubName (r/atom "")]
+    (let [newSubName (r/atom "")
+          subreddits (rf/subscribe [:reddit-subreddits])
+          subToRemove (r/atom (get-first-subreddit))]
         (fn []
             [ui/view {:style {}}
 
-                ;Add subreddit
                 [ui/custom-header1 "Reddit settings" {:color style/col-white}]
+
+                ;Add subreddit
                 [ui/custom-header2 "Add a subreddit" {:color style/col-white}]
-
-
                 [ui/custom-text-input newSubName {} "subreddit-name"]
                 [ui/custom-button "Add" {} #(rf/dispatch [:reddit-added-subreddit @newSubName])]
 
-
-
                 ;Remove fav
                 [ui/custom-header2 "Remove a subreddit" {:color style/col-white}]
+                [ui/custom-selection-input subToRemove subreddits]
+                [ui/custom-button "Remove" {} #(do (rf/dispatch-sync [:reddit-removed-subreddit @subToRemove])
+                                                   (reset! subToRemove (get-first-subreddit)))]
 
-
-                ;Convert this to actionsheet
-
-                [ui/picker {:selectedValue "1" :style {:backgroundColor "white" :color "black" :margin-left 10 :height 500 :width 300}
-                            :onValueChange (fn [value index] (println (str value "," index)))}
-
-                    [ui/pickerItem {:label "cose" :value "1"}]
-                    [ui/pickerItem {:label "cose2" :value "2"}]
-
-
-                    ]
-
-
-                ;[:select {:on-change #(reset! remSubNameAtom (-> % .-target .-value))} :defaultValue ""
-                    ;[:option  ""]
-                    ;(for [subname (seq @subs)]
-                        ;^{:key (first subname)} [:option (first subname)])]
-;
-                ;[:input {:type "button" :value "Remove"
-                                        ;:on-click #(rf/dispatch [:subreddit-removed @remSubNameAtom])}]
                 ]
         
         )))
 
+
+;(str (:reddit @re-frame.db/app-db))
+;(rf/dispatch-sync [:reddit-added-subreddit "vim"])
+;(rf/dispatch-sync [:reddit-selected-changed "clojure"])
 
 
 (defn main-controller []
@@ -111,7 +100,8 @@
             [ui/view 
                 (cond
                     (empty? @subredditNameAtom)
-                        [ui/custom-header2 "No subreddit selected."]
+                        [title "Nothing"]
+                        ;[ui/custom-header2 "No subreddit selected."]
 
                     (empty? @subredditDataAtom)
                         (do (net/http-get-json (str reddit-base-url @subredditNameAtom ".json") (fn [data] (reset! subredditDataAtom data)) )
@@ -121,9 +111,7 @@
                         (let [posts (:children (:data @subredditDataAtom))]
                             [ui/view  {:style {:height utils/sh}}
                                 [ui/flat-list {:data (clj->js posts) :render-item reddit-post :key-extractor (fn [item index] (str index))
-                                               :ListHeaderComponent (r/create-element (r/reactify-component (fn [] [title @subredditNameAtom])))}]]
-                        )
-                )
+                                               :ListHeaderComponent (r/create-element (r/reactify-component (fn [] [title @subredditNameAtom])))}]]))
 
 
                 [ui/animated-view {:pointerEvents "none"
