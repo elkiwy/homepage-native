@@ -19,6 +19,7 @@
 
 
 
+
 (defn reddit-post [item] ^{:key item}
     (r/create-element
         (r/reactify-component 
@@ -72,14 +73,14 @@
                 [ui/custom-header1 "Reddit settings" {:color style/col-white}]
 
                 ;Add subreddit
-                [ui/custom-header2 "Add a subreddit" {:color style/col-white}]
-                [ui/custom-text-input newSubName {} "subreddit-name"]
-                [ui/custom-button "Add" {} #(rf/dispatch [:reddit-added-subreddit @newSubName])]
+                [ui/custom-header2 "Add a subreddit" {:color style/col-white :margin-top 30}]
+                [ui/custom-text-input newSubName {:width (* utils/sw 0.8)} "subreddit-name"]
+                [ui/custom-button "Add" {:width (* utils/sw 0.8) :backgroundColor @style/col-accent2} #(rf/dispatch [:reddit-added-subreddit @newSubName])]
 
                 ;Remove fav
-                [ui/custom-header2 "Remove a subreddit" {:color style/col-white}]
-                [ui/custom-selection-input subToRemove subreddits]
-                [ui/custom-button "Remove" {} #(do (rf/dispatch-sync [:reddit-removed-subreddit @subToRemove])
+                [ui/custom-header2 "Remove a subreddit" {:color style/col-white :margin-top 30}]
+                [ui/custom-selection-input subToRemove subreddits {:width (* utils/sw 0.8) :backgroundColor style/col-white}]
+                [ui/custom-button "Remove" {:width (* utils/sw 0.8) :backgroundColor @style/col-accent2} #(do (rf/dispatch-sync [:reddit-removed-subreddit @subToRemove])
                                                    (reset! subToRemove (get-first-subreddit)))]
 
                 ]
