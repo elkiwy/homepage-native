@@ -59,9 +59,11 @@
                             #(do (rf/dispatch-sync [:reddit-selected-changed subName])
                                  (toggle-selection-view))]])))))
 
+
 (defn get-first-subreddit []
     (let [subreddits (rf/subscribe [:reddit-subreddits])]
         (if (empty? @subreddits) "No subreddits." (first @subreddits))))
+
 
 (defn settings-view []
     (let [newSubName (r/atom "")
@@ -81,9 +83,7 @@
                 [ui/custom-header2 "Remove a subreddit" {:color style/col-white :margin-top 30}]
                 [ui/custom-selection-input subToRemove subreddits {:width (* utils/sw 0.8) :backgroundColor style/col-white}]
                 [ui/custom-button "Remove" {:width (* utils/sw 0.8) :backgroundColor @style/col-accent2} #(do (rf/dispatch-sync [:reddit-removed-subreddit @subToRemove])
-                                                   (reset! subToRemove (get-first-subreddit)))]
-
-                ]
+                                                                                                              (reset! subToRemove (get-first-subreddit)))]]
         
         )))
 
@@ -95,8 +95,8 @@
 
 (defn main-controller []
     (let [subredditsAtom (rf/subscribe [:reddit-subreddits])
-          subredditDataAtom (r/atom nil)
-          subredditNameAtom (rf/subscribe [:reddit-selected])]
+          subredditNameAtom (rf/subscribe [:reddit-selected])
+          subredditDataAtom (r/atom {@subredditNameAtom {}})]
         (fn []
             [ui/view 
                 (cond
@@ -104,15 +104,18 @@
                         [title "Nothing"]
                         ;[ui/custom-header2 "No subreddit selected."]
 
-                    (empty? @subredditDataAtom)
-                        (do (net/http-get-json (str reddit-base-url @subredditNameAtom ".json") (fn [data] (reset! subredditDataAtom data)) )
-                        [ui/custom-header2 "Loading..."])
+                    (empty? (get-in @subredditDataAtom [@subredditNameAtom]))
+                        (do (net/http-get-json (str reddit-base-url @subredditNameAtom ".json")
+                                (fn [data] (reset! subredditDataAtom {@subredditNameAtom data})))
+                            [ui/custom-header2 "Loading..."])
 
                     :else
-                        (let [posts (:children (:data @subredditDataAtom))]
+                        (let [posts (:children (:data (get @subredditDataAtom @subredditNameAtom )))]
                             [ui/view  {:style {:height utils/sh}}
-                                [ui/flat-list {:data (clj->js posts) :render-item reddit-post :key-extractor (fn [item index] (str index))
-                                               :ListHeaderComponent (r/create-element (r/reactify-component (fn [] [title @subredditNameAtom])))}]]))
+
+                                [title @subredditNameAtom]
+
+                                [ui/flat-list {:data (clj->js posts) :render-item reddit-post :key-extractor (fn [item index] (str index))}]]))
 
 
                 [ui/animated-view {:pointerEvents "none"
