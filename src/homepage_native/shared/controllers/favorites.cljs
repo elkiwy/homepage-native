@@ -56,7 +56,7 @@
                         [ui/view {:style {:margin-top (* fav-height 0.5)}}
                             (for [fav favs] ^{:key (name (first fav))}
                                 [ui/custom-button-clear (name (first fav))
-                                    {:color s/col-white :font-size fav-font-size :backgroundColor "red" :font-weight "100" :height fav-height :margin 0}
+                                    {:color s/col-white :font-size fav-font-size :font-weight "100" :height fav-height :margin 0}
                                     #(net/http-open-url (second fav))
                                     {:margin-top 0 :margin-bottom 0}])]])))))
 
