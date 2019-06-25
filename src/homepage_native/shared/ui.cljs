@@ -70,15 +70,15 @@
     "A predefined button with default style."
     [label extraStyle f & [textStyle]]
     (fn [] [touchable-highlight {:style (merge {:background-color style/col-black :padding 10 :border-radius 5
-                                               :marginTop 8 :marginBottom 8 :marginLeft "auto" :marginRight "auto"} extraStyle) :on-press f} 
+                                               :margin-top 8 :margin-bottom 8 :margin-left "auto" :margin-right "auto"} extraStyle) :on-press f} 
             [text {:style (merge (style/style-text) {:color style/col-white :text-align "center" :font-weight "bold"} textStyle)}   (if (string? label) label @label)]]))
 
 
 
 (defn custom-button-clear
     "A predefined button without the background."
-    [label extraStyle f]
-    (fn [] [touchable-opacity {:style {:background-color nil :marginTop 8 :marginBottom 8 :marginLeft "auto" :marginRight "auto"} :on-press f} 
+    [label extraStyle f & [boxStyle]]
+    (fn [] [touchable-opacity {:style (merge {:background-color nil :margin-top 8 :margin-bottom 8 :margin-left "auto" :margin-right "auto" :align-items "center" :justifyContent "center" } boxStyle) :on-press f} 
             [text {:style (merge (style/style-text) {:color style/col-black :text-align "center" :font-weight "bold"} extraStyle)} label]]))
 
 

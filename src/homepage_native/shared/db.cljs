@@ -117,6 +117,23 @@
         (update-db-and-save true #(update-in db [:reddit :subreddits] utils/remove-from-vector sub))))
 
 
+;Favorites
+(rf/reg-event-db :favorites-category-added
+    (fn [db [_ category]]
+        (update-db-and-save true #(assoc-in db [:favs category] {}))))
+
+(rf/reg-event-db :favorites-category-removed
+    (fn [db [_ category]]
+        (update-db-and-save true #(utils/dissoc-in db [:favs] category))))
+
+(rf/reg-event-db :favorites-link-added
+    (fn [db [_ category name link]]
+        (update-db-and-save true #(assoc-in db [:favs category name] link))))
+    
+(rf/reg-event-db :favorites-link-removed
+    (fn [db [_ category name]]
+        (update-db-and-save true #(utils/dissoc-in db [:favs category] name))))
+
 
 
 
@@ -138,3 +155,7 @@
 (rf/reg-sub :reddit-selected ;A string
     (fn [db _] (:selected (:reddit db))))
 
+
+;favs
+(rf/reg-sub :favorites
+    (fn [db _] (:favs db)))
