@@ -8,20 +8,20 @@
             [homepage-native.shared.networking :as net]
             [homepage-native.shared.controllers.reddit :as ctrl-reddit]
             [homepage-native.shared.controllers.account :as ctrl-account]
+            [homepage-native.shared.controllers.favorites :as ctrl-favorites]
             [homepage-native.shared.db :as db]))
 
 
 
 
-(def topInsetView (r/atom nil))
-(def topInset (r/atom 0))
 
-(def pages {:Reddit ctrl-reddit/main-controller :Account ctrl-account/main-controller})
+(def pages {:Reddit ctrl-reddit/main-controller :Account ctrl-account/main-controller :Favorites ctrl-favorites/main-controller})
 (def settings {:Reddit ctrl-reddit/settings-view :Account nil})
 
 (def sidebarW (* utils/sw 0.8))
 (defonce sidebar-animvalue-x (ui/anim-new-value (* -1 sidebarW)))
 (defonce setting-animvalue-x (ui/anim-new-value utils/sw))
+
 
 
 
@@ -37,7 +37,7 @@
 (defn back-button [f]
     (fn []
         [ui/view {:style {:width (* utils/sw 0.05) :height 50 :position "absolute"
-                          :margin-top (- @topInset 10) :margin-left (* utils/sw 0.05) }}
+                          :margin-top (- @ui/topInset 10) :margin-left (* utils/sw 0.05) }}
             [ui/custom-button-clear "<" {:color style/col-white :font-size 30} f]]))
 
 
@@ -50,7 +50,7 @@
 (defn sidebar [posAnimVal]
     (fn []
         [ui/animated-view {:style {:position "absolute" :left posAnimVal :width sidebarW :height utils/sh
-                                   :paddingTop @topInset :backgroundColor (str style/col-black-full "fc")
+                                   :paddingTop @ui/topInset :backgroundColor (str style/col-black-full "fc")
                                    :border-right-color style/col-medium-gray :border-right-width 1 }}
             ;Header
             [ui/view {:style {:border-bottom-color @style/col-accent1 :border-bottom-width 1 :padding-bottom 15 :margin-left 15 :margin-right 15}}
@@ -61,6 +61,7 @@
             [sidebar-item "Rss" :Rss]
             [sidebar-item "Account" :Account true]
             [back-button toggle-sidebar]]))
+
 
 
 
@@ -77,8 +78,8 @@
                 ;Main working area
                 [ui/safe-area-view {:style {:width utils/sw :flex 1}}
                     ;Workaround for the safe area insets
-                    [ui/view {:ref (fn [me] (reset! topInsetView me)) :style {:height 0}
-                              :onLayout (fn [e] (.measure @topInsetView (fn [_ y _ _ _ _] (reset! topInset y))))}]
+                    [ui/view {:ref (fn [me] (reset! ui/topInsetView me)) :style {:height 0}
+                              :onLayout (fn [e] (.measure @ui/topInsetView (fn [_ y _ _ _ _] (reset! ui/topInset y))))}]
 
                     ;Main screen
                     (when (not (nil? @page))
@@ -88,13 +89,13 @@
                                 [p])))
 
                     ;Sidebar button
-                    [ui/view {:style {:width (* utils/sw 0.1) :position "absolute" :margin-top (- @topInset 10) :margin-left (* utils/sw 0.05)}}
+                    [ui/view {:style {:width (* utils/sw 0.1) :position "absolute" :margin-top (- @ui/topInset 10) :margin-left (* utils/sw 0.05)}}
                         [ui/custom-button-clear "=" {:color style/col-black :font-size 30}
                             toggle-sidebar]]
 
 
                     ;Page settings button
-                    [ui/view {:style {:width (* utils/sw 0.1) :position "absolute" :margin-top (- @topInset 10) :margin-left (* utils/sw 0.85)}}
+                    [ui/view {:style {:width (* utils/sw 0.1) :position "absolute" :margin-top (- @ui/topInset 10) :margin-left (* utils/sw 0.85)}}
                         [ui/custom-button-clear "+" {:color style/col-black :font-size 30}
                             toggle-settings]]
                     
@@ -103,7 +104,7 @@
                     ;Page settings
                     (when (not (nil? @page))
                         (let [p ((keyword @page) settings)]
-                            [ui/animated-view {:style {:backgroundColor (str style/col-black-full "f0") :position "absolute" :paddingTop @topInset 
+                            [ui/animated-view {:style {:backgroundColor (str style/col-black-full "f0") :position "absolute" :paddingTop @ui/topInset 
                                                            :top 0 :left (:anim setting-animvalue-x) :width utils/sw :height utils/sh}}
                                 (if (nil? p)
                                     [ui/view [ui/custom-header2 "No settings for this page" {:color style/col-white}]]

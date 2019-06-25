@@ -4,6 +4,10 @@
               [homepage-native.shared.utils :as utils]))
 
 
+; ------------------------------------------------------------
+; Safe margins workaround
+(def topInsetView (r/atom nil))
+(def topInset (r/atom 0))
 
 ; ------------------------------------------------------------
 ; External libraries
