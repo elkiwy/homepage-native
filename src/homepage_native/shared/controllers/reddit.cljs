@@ -20,16 +20,60 @@
 
 
 
+              ;:author "Mustardforyou"
+
+              ;:created 1554023315
+              ;:domain "discord.gg"
+
+              ;:downs 0
+              ;:ups 296
+              ;:score 296
+              ;:num_comments 49
+
+              ;:preview {:images [{:source {:url "https://external-preview.redd.it/T2UIMQ3uvC16xcd5gc6aCPeoOE7CdKnf-arERS5PCJA.jpg?auto=webp&amp;s=c422ea97905baf0b46680f61bca5b8480cccdc4b" :width 256 :height 256} :resolutions [{:url "https://external-preview.redd.it/T2UIMQ3uvC16xcd5gc6aCPeoOE7CdKnf-arERS5PCJA.jpg?width=108&amp;crop=smart&amp;auto=webp&amp;s=ac33d4801eaabbfe91931ee21ddedbbccf0493ab" :width 108 :height 108} {:url "https://external-preview.redd.it/T2UIMQ3uvC16xcd5gc6aCPeoOE7CdKnf-arERS5PCJA.jpg?width=216&amp;crop=smart&amp;auto=webp&amp;s=e1d02c0f58f919aaddced6a4bc50c34aeb2cc412" :width 216 :height 216}] :variants {} :id "_ea2YllHFhs3sRFzrQD4LPdD0xPtYXLYGi-oKu-6f3E"}] :enabled false}
+
+              ;:thumbnail "https://b.thumbs.redditmedia.com/dXAU8_8k9pxIySie4SsPBZ1U50OaHI1giiwm78TpaFY.jpg"
+              ;:thumbnail_height 140
+              ;:thumbnail_width 140
+
+              ;:title "Join the official /r/Meme Discord server!"
+              ;:url "https://discord.gg/GA7B7tg"
+              ;:permalink "/r/meme/comments/b7ia84/join_the_official_rmeme_discord_server/"
+
+
+
+
+(def post-image-height 300)
+
+
+
 (defn reddit-post [item] ^{:key item}
     (r/create-element
         (r/reactify-component 
-            (fn []
-                (let [info (:item (js->clj item :keywordize-keys true))]
-                    [ui/view {:style {:width utils/sw :margin-top 1 :margin-bottom 1}}
-                        [ui/touchable-opacity {:on-press #( (net/http-open-url (:url (:data info))))
-                                            :style (merge (style/style-light-background-and-border) {:flex-direction "row"})}
-                            [ui/text {:style (merge (style/style-text) {:flex 1 :padding 12})}
-                                (str (:title (:data info)))]]])))))
+            (let [myRef      (r/atom nil)
+                  min-h   (r/atom 0)]
+                (fn []
+                    (let [info (:item (js->clj item :keywordize-keys true))
+                          max-h      (+ @min-h post-image-height)
+                          animHeight (ui/anim-new-value @min-h)
+                          animSep    (ui/anim-new-value 0)
+                          textStyle  {:style (merge (style/style-text) {:flex 1 :padding 12})}
+                          {title :title
+                           url   :url}  (:data info)]
+
+                        ;Main holder
+                        [ui/view
+                            ;Measurable view (Couldn't managed to get things working on animated-views, TODO this one day)
+                            [ui/view {:style {:position "absolute" :top -1000}   :ref (fn [me] (reset! myRef me))
+                                      :onLayout (fn [e] (.measure @myRef (fn [_ _ _ h _ _] (reset! min-h h))))}
+                                [ui/text textStyle (str title)]]
+
+                            ;Actual view
+                            [ui/animated-view {:style (merge (style/style-light-background-and-border)
+                                                             {:height (:anim animHeight) :width utils/sw :margin-top 1 :margin-bottom 1})}
+                                [ui/touchable-opacity {:on-press #(ui/toggle-section-height animHeight @min-h max-h animSep);#(net/http-open-url url)
+                                                        :style {:flex-direction "row"}}
+                                    [ui/text textStyle (str title)]]]]))))))
 
 
 
@@ -37,15 +81,13 @@
     (let [current (ui/anim-get-value subSelectionY)
           toHide? (= current subSelectionYMin)]
         (ui/anim-set-value subSelectionAlpha (if toHide? 0 0.95))
-        (ui/anim-set-value subSelectionY (if toHide? subSelectionYMax subSelectionYMin))
-))
+        (ui/anim-set-value subSelectionY (if toHide? subSelectionYMax subSelectionYMin))))
 
 
 (defn title [name]
     (fn []
         [ui/view {:style {:border-bottom-width 2 :border-bottom-color @style/col-accent2}}
-            [ui/custom-button-clear (str "r/" name) {:font-size 22} #(toggle-selection-view)]
-            ]))
+            [ui/custom-button-clear (str "r/" name) {:font-size 22} #(toggle-selection-view)]]))
 
 
 
@@ -93,6 +135,7 @@
 ;(rf/dispatch-sync [:reddit-selected-changed "clojure"])
 
 
+
 (defn main-controller []
     (let [subredditsAtom (rf/subscribe [:reddit-subreddits])
           subredditNameAtom (rf/subscribe [:reddit-selected])
@@ -111,21 +154,22 @@
 
                     :else
                         (let [posts (:children (:data (get @subredditDataAtom @subredditNameAtom )))]
-                            [ui/view  {:style {:height utils/sh}}
+                            [ui/view  {:style {:height (- utils/sh @ui/topInset )}}
 
+
+                                ;Title
                                 [title @subredditNameAtom]
 
-                                [ui/flat-list {:data (clj->js posts) :render-item reddit-post :key-extractor (fn [item index] (str index))}]]))
+                                ;Post list
+                                [ui/flat-list {:data [(first (filter #(not (nil? (:data %))) posts))] :render-item reddit-post :key-extractor (fn [item index] (str index))}]]))
 
 
-                [ui/animated-view {:pointerEvents "none"
-                                   :style {:position "absolute" :left 0 :top -100 :width utils/sw :height (+ utils/sh 100)
-                                           :backgroundColor style/col-black-full :opacity (:anim subSelectionAlpha) }}]
-                [ui/animated-view {:style {:backgroundColor style/col-black :opacity 0.85 :position "absolute" :left 0 :top (:anim subSelectionY) :width utils/sw :height utils/sh}}
-                        (let [subs @subredditsAtom]
-                            [ui/flat-list {:data subs
-                                           :render-item subs-selection
-                                           :key-extractor (fn [item index] (str index))}])]
+                ;Hidden subreddit selection view
+                [ui/animated-view {:pointerEvents "none" :style {:position "absolute" :left 0 :top -100 :width utils/sw :height (+ utils/sh 100)
+                                                                 :backgroundColor style/col-black-full :opacity (:anim subSelectionAlpha) }}]
+                [ui/animated-view {:style {:backgroundColor style/col-black :opacity 0.85 :position "absolute"
+                                           :left 0 :top (:anim subSelectionY) :width utils/sw :height utils/sh}}
+                    [ui/flat-list {:data @subredditsAtom :render-item subs-selection :key-extractor (fn [item index] (str index))}]]
                 
 
                     ])))
