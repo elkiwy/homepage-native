@@ -15,17 +15,6 @@
 (def fav-height (+ fav-font-size 24))
 
 
-(defn toggle-section-height
-    "Toggles the favorites section expansion animation on and off"
-    [heightAnim favs-count sepAnim]
-    (let [min sec-name-height
-          max (+ min (* fav-height (+ favs-count 1)))]
-        (if (= (ui/anim-get-value heightAnim) min)
-            (do (ui/anim-set-value heightAnim max)
-                (ui/anim-set-value sepAnim utils/sw))
-            (do (ui/anim-set-value heightAnim min)
-                (ui/anim-set-value sepAnim 0)))))
-
 
 
 (defn fav-section
@@ -45,7 +34,7 @@
                         [ui/custom-button-clear section-name
                             {:color s/col-white :font-weight "600" :margin-top 0
                              :height sec-name-height :font-size sec-name-font-size}
-                            #(toggle-section-height heightAnim (count favs) separatorAnim)
+                            #(ui/toggle-section-height heightAnim sec-name-height (+ sec-name-height (* fav-height (+ (count favs) 1))) separatorAnim)
                             {:margin-top 8 :margin-bottom -8 :width utils/sw}]
 
                         ;Animated separator

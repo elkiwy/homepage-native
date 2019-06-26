@@ -65,6 +65,19 @@
 
 
 ; ------------------------------------------------------------
+; Custom ui animations
+
+(defn toggle-section-height
+    "Toggles the favorites section expansion animation on and off"
+    [heightAnim min max sepAnim]
+    (if (= (anim-get-value heightAnim) min)
+        (do (anim-set-value heightAnim max)
+            (anim-set-value sepAnim utils/sw))
+        (do (anim-set-value heightAnim min)
+            (anim-set-value sepAnim 0))))
+
+
+; ------------------------------------------------------------
 ; Custom ui elements
 (defn custom-button
     "A predefined button with default style."
