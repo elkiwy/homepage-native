@@ -43,37 +43,56 @@
 
 
 
-(def post-image-height 300)
+(def post-image-height 100)
+(def post-image-margin 24)
+(def post-extra-height 100)
 
 
 
 (defn reddit-post [item] ^{:key item}
     (r/create-element
         (r/reactify-component 
-            (let [myRef      (r/atom nil)
+            (let [myRef   (r/atom nil)
                   min-h   (r/atom 0)]
                 (fn []
                     (let [info (:item (js->clj item :keywordize-keys true))
-                          max-h      (+ @min-h post-image-height)
+                          max-h      (+ @min-h post-image-height (* post-image-margin 2) post-extra-height)
                           animHeight (ui/anim-new-value @min-h)
                           animSep    (ui/anim-new-value 0)
                           textStyle  {:style (merge (style/style-text) {:flex 1 :padding 12})}
                           {title :title
-                           url   :url}  (:data info)]
+                           url   :url
+                           thumbnail :thumbnail
+                           selftext :selftext}  (:data info)]
 
                         ;Main holder
                         [ui/view
                             ;Measurable view (Couldn't managed to get things working on animated-views, TODO this one day)
-                            [ui/view {:style {:position "absolute" :top -1000}   :ref (fn [me] (reset! myRef me))
+                            [ui/view {:style {:position "absolute" :left -1000 :top -1000 :hidden true}   :ref (fn [me] (reset! myRef me))
                                       :onLayout (fn [e] (.measure @myRef (fn [_ _ _ h _ _] (reset! min-h h))))}
-                                [ui/text textStyle (str title)]]
+                                [ui/text (merge textStyle {:opacity 0}) (str title)]]
 
                             ;Actual view
                             [ui/animated-view {:style (merge (style/style-light-background-and-border)
-                                                             {:height (:anim animHeight) :width utils/sw :margin-top 1 :margin-bottom 1})}
+                                                             {:height (:anim animHeight) :width utils/sw :margin-top 1 :margin-bottom 1 :overflow "hidden"})}
                                 [ui/touchable-opacity {:on-press #(ui/toggle-section-height animHeight @min-h max-h animSep);#(net/http-open-url url)
                                                         :style {:flex-direction "row"}}
-                                    [ui/text textStyle (str title)]]]]))))))
+                                    [ui/text textStyle (str title)]]
+
+                                ;Post detail
+                                [ui/view {:style {:flex-direction "row"}}
+                                    ;Image
+                                    (when-not (empty? thumbnail)
+                                        [ui/image {:source {:uri thumbnail}
+                                                   :style  {:margin post-image-margin :width post-image-height :height post-image-height}}])
+
+                                    ;Selftext / external url
+                                    [ui/text {:style (merge (style/style-text style/col-white "200" 12)
+                                                            {:margin post-image-margin :margin-left (if (empty? thumbnail) post-image-margin 0)})}
+                                        (if-not (empty? selftext) selftext url)]]
+
+
+                                ]]))))))
 
 
 
@@ -161,7 +180,7 @@
                                 [title @subredditNameAtom]
 
                                 ;Post list
-                                [ui/flat-list {:data [(first (filter #(not (nil? (:data %))) posts))] :render-item reddit-post :key-extractor (fn [item index] (str index))}]]))
+                                [ui/flat-list {:data (filter #(not (nil? (:data %))) posts) :render-item reddit-post :key-extractor (fn [item index] (str index))}]]))
 
 
                 ;Hidden subreddit selection view
