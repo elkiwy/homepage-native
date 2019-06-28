@@ -63,6 +63,7 @@
                           {title :title
                            url   :url
                            thumbnail :thumbnail
+                           permalink :permalink
                            selftext :selftext}  (:data info)]
 
                         ;Main holder
@@ -75,24 +76,54 @@
                             ;Actual view
                             [ui/animated-view {:style (merge (style/style-light-background-and-border)
                                                              {:height (:anim animHeight) :width utils/sw :margin-top 1 :margin-bottom 1 :overflow "hidden"})}
-                                [ui/touchable-opacity {:on-press #(ui/toggle-section-height animHeight @min-h max-h animSep);#(net/http-open-url url)
+                                ;Main List row
+                                [ui/touchable-opacity {:on-press #(ui/toggle-section-height animHeight @min-h max-h animSep)
                                                         :style {:flex-direction "row"}}
                                     [ui/text textStyle (str title)]]
 
+                                ;Separator
+                                [ui/animated-view {:style {:backgroundColor @style/col-accent1 :width (:anim animSep) :height 1
+                                                           :margin-left "auto" :margin-right "auto"}}]
+
+
                                 ;Post detail
-                                [ui/view {:style {:flex-direction "row"}}
-                                    ;Image
-                                    (when-not (empty? thumbnail)
-                                        [ui/image {:source {:uri thumbnail}
-                                                   :style  {:margin post-image-margin :width post-image-height :height post-image-height}}])
+                                (let [image? (not (or (empty? thumbnail) (= thumbnail "self") (= thumbnail "default")))]
+                                    [ui/view {:style {:flex-direction "row" :flex 1}}
+                                        ;Image
+                                        (when image?
+                                            [ui/image {:source {:uri thumbnail}
+                                                       :style {:borderWidth 2 :borderColor @style/col-accent2 :margin post-image-margin :width post-image-height :height post-image-height}}])
 
-                                    ;Selftext / external url
-                                    [ui/text {:style (merge (style/style-text style/col-white "200" 12)
-                                                            {:margin post-image-margin :margin-left (if (empty? thumbnail) post-image-margin 0)})}
-                                        (if-not (empty? selftext) selftext url)]]
+                                        ;Selftext / external url
+                                        (if (empty? selftext)
+                                            ;External URL link
+                                            [ui/view {:style {:flex 1 :margin-top post-image-margin }}
+                                                ;External url label
+                                                [ui/view {:style {:flex 1 :flex-direction "row" }}
+                                                    [ui/custom-header2  "External link to:" (merge {:flex 1 :flexWrap "wrap" :margin post-image-margin :margin-left 0}
+                                                                                                (style/style-text style/col-white "400" 16))]]
 
+                                                ;Link
+                                                [ui/touchable-opacity {:on-press #(net/http-open-url url) :style {:flex 3}} 
+                                                    [ui/text {:style (merge (style/style-text style/col-white "300" 18)
+                                                                        {:flex 1 :textAlign "center" :margin post-image-margin :margin-left (if image? 0 post-image-margin)})}
+                                                        url]]]
 
-                                ]]))))))
+                                            ;Selftext
+                                            [ui/view
+                                                ;Full post link
+                                                [ui/touchable-opacity {:on-press #(net/http-open-url (str "https://reddit.com" permalink)) } 
+                                                    [ui/text {:style (merge (style/style-text style/col-white "400" 16)
+                                                                            {:height 20 :textDecorationLine "underline"
+                                                                            :textAlign "center" :margin-top post-image-margin})}
+                                                        "Full post"]]
+
+                                                ;Text
+                                                [ui/text {:style (merge (style/style-text style/col-white "200" 12)
+                                                                        {:textAlign "justify" :margin post-image-margin :margin-left (if image? 0 post-image-margin)})}
+                                                    selftext]])])
+
+                            ]]))))))
 
 
 
