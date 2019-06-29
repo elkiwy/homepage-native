@@ -159,3 +159,6 @@
 ;favs
 (rf/reg-sub :favorites
     (fn [db _] (:favs db)))
+
+(rf/reg-sub :favorites-categories
+    (fn [db _] (into [] (map first (seq (:favs db))))))

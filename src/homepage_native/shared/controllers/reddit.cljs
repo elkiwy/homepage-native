@@ -157,6 +157,7 @@
         (if (empty? @subreddits) "No subreddits." (first @subreddits))))
 
 
+
 (defn settings-view []
     (let [newSubName (r/atom "")
           subreddits (rf/subscribe [:reddit-subreddits])
@@ -168,16 +169,15 @@
 
                 ;Add subreddit
                 [ui/custom-header2 "Add a subreddit" {:color style/col-white :margin-top 30}]
-                [ui/custom-text-input newSubName {:width (* utils/sw 0.8)} "subreddit-name"]
-                [ui/custom-button "Add" {:width (* utils/sw 0.8) :backgroundColor @style/col-accent2} #(rf/dispatch [:reddit-added-subreddit @newSubName])]
+                [ui/custom-text-input newSubName {} "subreddit-name"]
+                [ui/custom-button "Add" {:backgroundColor @style/col-accent2} #(rf/dispatch [:reddit-added-subreddit @newSubName])]
 
                 ;Remove fav
                 [ui/custom-header2 "Remove a subreddit" {:color style/col-white :margin-top 30}]
-                [ui/custom-selection-input subToRemove subreddits {:width (* utils/sw 0.8) :backgroundColor style/col-white}]
-                [ui/custom-button "Remove" {:width (* utils/sw 0.8) :backgroundColor @style/col-accent2} #(do (rf/dispatch-sync [:reddit-removed-subreddit @subToRemove])
-                                                                                                              (reset! subToRemove (get-first-subreddit)))]]
-        
-        )))
+                [ui/custom-selection-input subToRemove subreddits {}]
+                [ui/custom-button "Remove" {:backgroundColor @style/col-accent2} #(do (rf/dispatch-sync [:reddit-removed-subreddit @subToRemove])
+                                                                                                              (reset! subToRemove (get-first-subreddit)))]])))
+
 
 
 ;(str (:reddit @re-frame.db/app-db))

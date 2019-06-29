@@ -82,8 +82,9 @@
 (defn custom-button
     "A predefined button with default style."
     [label extraStyle f & [textStyle]]
-    (fn [] [touchable-highlight {:style (merge {:background-color style/col-black :padding 10 :border-radius 5
-                                               :margin-top 8 :margin-bottom 8 :margin-left "auto" :margin-right "auto"} extraStyle) :on-press f} 
+    (fn [] [touchable-highlight {:style (merge {:backgroundColor style/col-black :padding 10 :border-radius 5 :width (* utils/sw 0.8)
+                                               :margin-top 8 :margin-bottom 8 :margin-left "auto" :margin-right "auto"} extraStyle)
+                                :on-press f} 
             [text {:style (merge (style/style-text) {:color style/col-white :text-align "center" :font-weight "bold"} textStyle)}   (if (string? label) label @label)]]))
 
 
@@ -102,7 +103,8 @@
     (fn [] [text-input {:value @myAtom :placeholder (str default)
                        :autoCapitalize "none"
                        :secureTextEntry (if (nil? password) false password)
-                       :style (merge (style/style-text style/col-dark-gray "400" 14) {:margin 8 :padding 10 :marginLeft "auto" :marginRight "auto"
+                       :style (merge (style/style-text style/col-dark-gray "400" 14)
+                                     {:width (* utils/sw 0.8) :margin 8 :padding 10 :marginLeft "auto" :marginRight "auto"
                                       :border-radius 5 :backgroundColor style/col-white} extraStyle)
                        :onChangeText (fn [text] (reset! myAtom (clojure.string/trim text)))}]))
 
@@ -123,11 +125,11 @@
 
 (defn custom-selection-input 
     "A custom button that triggers an action sheet selection. The button always shows the atom value."
-    [myAtom itemsAtom & [extraStyle textStyle]]
-    (fn [] [custom-button myAtom (if (nil? extraStyle) {} extraStyle)
+    [myAtom itemsAtom & [extraStyle textStyle extraFunction]]
+    (fn [] [custom-button myAtom (merge {:width (* utils/sw 0.8) :backgroundColor style/col-white} extraStyle)
               #(.showActionSheetWithOptions actionsheet
                    (clj->js {:options @itemsAtom })
-                   (fn [buttonIndex] (reset! myAtom (nth @itemsAtom buttonIndex))))
+                   (fn [buttonIndex] (do (reset! myAtom (nth @itemsAtom buttonIndex)) (when-not (nil? extraFunction) (extraFunction)))))
               (merge {:textAlign "left"} (style/style-text style/col-dark-gray "400" 14) (if (nil? textStyle) {} textStyle)) ]))
 
 

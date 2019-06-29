@@ -16,11 +16,12 @@
 
 
 (def pages {:Reddit ctrl-reddit/main-controller :Account ctrl-account/main-controller :Favorites ctrl-favorites/main-controller})
-(def settings {:Reddit ctrl-reddit/settings-view :Account nil})
+(def settings {:Reddit ctrl-reddit/settings-view :Account nil :Favorites ctrl-favorites/settings-view})
 
 (def sidebarW (* utils/sw 0.8))
 (defonce sidebar-animvalue-x (ui/anim-new-value (* -1 sidebarW)))
 (defonce setting-animvalue-x (ui/anim-new-value utils/sw))
+
 
 
 
