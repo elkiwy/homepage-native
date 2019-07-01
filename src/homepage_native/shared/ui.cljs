@@ -22,6 +22,7 @@
 (def safe-area-view      (r/adapt-react-class (.-SafeAreaView utils/react)))
 (def view                (r/adapt-react-class (.-View utils/react)))
 (def flat-list           (r/adapt-react-class (.-FlatList utils/react)))
+(def scroll-view         (r/adapt-react-class (.-ScrollView utils/react)))
 (def image               (r/adapt-react-class (.-Image utils/react)))
 (def touchable-highlight (r/adapt-react-class (.-TouchableHighlight utils/react)))
 (def touchable-opacity   (r/adapt-react-class (.-TouchableOpacity utils/react)))
