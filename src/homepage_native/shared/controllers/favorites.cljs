@@ -77,24 +77,27 @@
 
                 [ui/custom-header1 "Favorites settings" {:color style/col-white}]
 
+                [ui/scroll-view {:style {:margin-bottom 100}}
+                    [ui/custom-header2 "Add a category" {:color style/col-white :margin-top 30}]
+                    [ui/custom-text-input nameCatAtom {} "Name"]
+                    [ui/custom-button "Add" {:backgroundColor @style/col-accent2} #(rf/dispatch [:favorites-category-added @nameCatAtom])]
 
-                ;Category
-                [ui/custom-header2 "Add a category" {:color style/col-white :margin-top 30}]
-                [ui/custom-text-input nameCatAtom {} "Name"]
-                [ui/custom-button "Add" {:backgroundColor @style/col-accent2} #(rf/dispatch [:favorites-category-added @nameCatAtom])]
+                    [ui/custom-header2 "Add a favorite" {:color style/col-white :margin-top 30}]
+                    [ui/custom-text-input nameAtom {} "Name"]
+                    [ui/custom-text-input linkAtom {} "URL"]
+                    [ui/custom-selection-input cateAtom categories {}]
+                    [ui/custom-button "Add" {:backgroundColor @style/col-accent2} #(rf/dispatch [:favorites-link-added @cateAtom @nameAtom @linkAtom])]
 
-                ;Favorite
-                [ui/custom-header2 "Add a favorite" {:color style/col-white :margin-top 30}]
-                [ui/custom-text-input nameAtom {} "Name"]
-                [ui/custom-text-input linkAtom {} "URL"]
-                [ui/custom-selection-input cateAtom categories {}]
-                [ui/custom-button "Add" {:backgroundColor @style/col-accent2} #(rf/dispatch [:favorites-link-added @cateAtom @nameAtom @linkAtom])]
+                    [ui/custom-header2 "Remove a favorite" {:color style/col-white :margin-top 30}]
+                    [ui/custom-selection-input removeCateAtom categories {} {} #(do (reset! linksToRemove (map first (get @favs @removeCateAtom))) (reset! removeFavAtom ""))]
+                    [ui/custom-selection-input removeFavAtom linksToRemove {}]
+                    [ui/custom-button "Remove" {:backgroundColor @style/col-accent2} #(rf/dispatch [:favorites-link-removed @removeCateAtom @removeFavAtom ])]
 
-                [ui/custom-header2 "Remove a favorite" {:color style/col-white :margin-top 30}]
-                [ui/custom-selection-input removeCateAtom categories {} {} #(do (reset! linksToRemove (map first (get @favs @removeCateAtom))) (reset! removeFavAtom ""))]
-                [ui/custom-selection-input removeFavAtom linksToRemove {}]
-                [ui/custom-button "Remove" {:backgroundColor @style/col-accent2} #(rf/dispatch [:favorites-link-removed @removeCateAtom @removeFavAtom ])]
+                    [ui/custom-header2 "Remove a category" {:color style/col-white :margin-top 30}]
+                    [ui/custom-selection-input removeCategoryAtom categories {}]
+                    [ui/custom-button "Remove" {:backgroundColor @style/col-accent2} #(rf/dispatch [:favorites-category-removed @removeCategoryAtom])]
 
+                ]
 
             ])))
 
