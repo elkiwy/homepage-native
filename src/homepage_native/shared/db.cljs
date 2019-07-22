@@ -118,22 +118,88 @@
 
 
 ;Favorites
-(rf/reg-event-db :favorites-category-added
-    (fn [db [_ category]]
-        (update-db-and-save true #(assoc-in db [:favs category] {}))))
+(defn get-categories-names
+    "[TO CLEAN] Retrieves the categories vector from a `db`."
+    [db]
+    (mapv #(utils/deurlizeString (:name %)) (get-in db [:favorites :categories])))
 
-(rf/reg-event-db :favorites-category-removed
-    (fn [db [_ category]]
-        (update-db-and-save true #(utils/dissoc-in db [:favs] category))))
+(defn in-vector?
+    "Checks if an `item` is inside the vector `v`."
+    [v item]
+    (not (nil? (some #(= item %) v))))
 
-(rf/reg-event-db :favorites-link-added
+(defn alert-and-return
+    "Shows an alert and returns the `db`."
+    [message db] 
+    (js/alert message)
+    db)
+
+(rf/reg-event-db :favorite2-category-added
+    (fn [db [_ name]]
+        (cond
+            ;Category name already exists
+            (in-vector? (get-categories-names db) name)
+                (alert-and-return (str "A category named \"" name "\" already exists.") db)
+            ;Success case
+            :else 
+                (let [nam (utils/urlizeString name)
+                    categories (get-in db [:favorites :categories])
+                    ind (count categories)
+                    newCategories (conj categories {:name nam :order (inc ind) :links []})]
+                    (update-db-and-save true
+                        #(assoc-in db [:favorites :categories] (vec newCategories)))))))
+
+(rf/reg-event-db :favorite2-link-added
     (fn [db [_ category name link]]
-        (update-db-and-save true #(assoc-in db [:favs category name] link))))
-    
-(rf/reg-event-db :favorites-link-removed
-    (fn [db [_ category name]]
-        (update-db-and-save true #(utils/dissoc-in db [:favs category] name))))
+        (let [categories (get-in db [:favorites :categories])
+              cateIndex (utils/index categories #(= (:name %) category))
+              links (get-in categories [cateIndex :links])
+              cateLinksNames (mapv #(utils/deurlizeString (:name %)) links)]
+            (cond
+                ;Duplicate name case
+                (in-vector? cateLinksNames name)
+                    (alert-and-return (str "A link named \"" name "\" already exists.") db)
+                ;Default case
+                :else
+                    (let [nam (utils/urlizeString name)
+                        cat (utils/urlizeString category)
+                        lnk (utils/urlizeString link)]
+                        (update-db-and-save true
+                            #(update-in db [:favorites :categories cateIndex :links]
+                                 conj {:name nam :link lnk})))))))
 
+(rf/reg-event-db :favorite2-category-removed
+    (fn [db [_ name]]
+        (let [nam (utils/urlizeString name)
+              categories (get-in db [:favorites :categories])
+              newCategories (remove #(= nam (utils/urlizeString (:name %))) categories)]
+            (update-db-and-save true
+                #(assoc-in db [:favorites :categories] (vec newCategories))))))
+
+(rf/reg-event-db :favorite2-link-removed
+    (fn [db [_ category name]]
+        (let [cat (utils/urlizeString category)
+              nam (utils/urlizeString name)
+              categories (get-in db [:favorites :categories])
+              cateIndex  (utils/index categories #(= (:name %) cat))]
+            (update-db-and-save true
+                #(update-in db [:favorites :categories cateIndex :links]
+                       (fn [obj] (remove (fn [link] (= (:name link) nam)) obj)))))))
+
+(rf/reg-event-db :favorite2-categories-swapped
+    (fn [db [_ cat1 cat2]]
+           (let [cat1 (utils/urlizeString cat1)
+                 cat2 (utils/urlizeString cat2)
+                 categories (get-in db [:favorites :categories])
+                 cat1-ind (:order (first (filter #(= (:name %) cat1) categories)))
+                 cat2-ind (:order (first (filter #(= (:name %) cat2) categories)))
+                 cat1-vec-pos (utils/index categories #(= (:name %) cat1))
+                 cat2-vec-pos (utils/index categories #(= (:name %) cat2))
+                 categories-new (vec (assoc-in categories     [cat1-vec-pos :order] cat2-ind))
+                 categories-new (vec (assoc-in categories-new [cat2-vec-pos :order] cat1-ind))
+                 categories-new (vec (sort #(< (:order %1) (:order %2)) categories-new))]
+               (update-db-and-save true
+                   #(assoc-in db [:favorites :categories] categories-new)))))
 
 
 
@@ -157,8 +223,16 @@
 
 
 ;favs
-(rf/reg-sub :favorites
-    (fn [db _] (:favs db)))
+(rf/reg-sub :favorites ; {:categories [{:name "Social" :order 1 :link [{:name "Facebook" :link "..."}]}]}
+    (fn [db _]
+        (:favorites db)))
 
-(rf/reg-sub :favorites-categories
-    (fn [db _] (into [] (map first (seq (:favs db))))))
+(rf/reg-sub :favorites2-categories ; ["Social" "Relax" "Work"]
+    (fn [db _]
+        (vec (mapv #(utils/deurlizeString (:name %)) (get-in db [:favorites :categories])))))
+
+(rf/reg-sub :favorites2-category-links ; [{:name "Facebook" :link "..."} {:name "YouTube" :link "..."}]
+    (fn [db [_ name]]
+        (let [categories (get-in db [:favorites :categories])
+              category (first (filter #(= (:name %) (utils/urlizeString name)) categories))]
+            (vec (:links category)))))
