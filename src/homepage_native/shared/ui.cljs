@@ -129,8 +129,12 @@
     [myAtom itemsAtom & [extraStyle textStyle extraFunction]]
     (fn [] [custom-button myAtom (merge {:width (* utils/sw 0.8) :backgroundColor style/col-white} extraStyle)
               #(.showActionSheetWithOptions actionsheet
-                   (clj->js {:options @itemsAtom })
-                   (fn [buttonIndex] (do (reset! myAtom (nth @itemsAtom buttonIndex)) (when-not (nil? extraFunction) (extraFunction)))))
+                   (clj->js {:options (concat @itemsAtom ["Cancel"]) :cancelButtonIndex (count @itemsAtom)})
+                   (fn [buttonIndex]
+                       (when (< buttonIndex (count @itemsAtom))
+                           (reset! myAtom (nth @itemsAtom buttonIndex)))
+                       (when-not (nil? extraFunction)
+                           (extraFunction))))
               (merge {:textAlign "left"} (style/style-text style/col-dark-gray "400" 14) (if (nil? textStyle) {} textStyle)) ]))
 
 
