@@ -9,13 +9,18 @@
             [homepage-native.shared.controllers.reddit :as ctrl-reddit]
             [homepage-native.shared.controllers.account :as ctrl-account]
             [homepage-native.shared.controllers.favorites :as ctrl-favorites]
+            [homepage-native.shared.controllers.rss :as ctrl-rss]
             [homepage-native.shared.db :as db]))
 
 
 
 
 
-(def pages {:Reddit ctrl-reddit/main-controller :Account ctrl-account/main-controller :Favorites ctrl-favorites/main-controller})
+(def pages {:Reddit    ctrl-reddit/main-controller
+            :Account   ctrl-account/main-controller
+            :Favorites ctrl-favorites/main-controller
+            :Rss       ctrl-rss/main-controller})
+
 (def settings {:Reddit ctrl-reddit/settings-view :Account nil :Favorites ctrl-favorites/settings-view})
 
 (def sidebarW (* utils/sw 0.8))

@@ -202,6 +202,26 @@
                    #(assoc-in db [:favorites :categories] categories-new)))))
 
 
+; --------------------------------------
+; RSS
+(rf/reg-event-db :rss-selected-changed
+    (fn [db [_ newRss]]
+        (update-db-and-save true
+            #(assoc-in db [:rss :selected] (utils/urlizeString newRss)))))
+
+(rf/reg-event-db :rss-added
+    (fn [db [_ name url]]
+        (update-db-and-save true
+            #(assoc-in db [:rss :feeds (utils/urlizeString name)] url))))
+
+(rf/reg-event-db :rss-removed
+    (fn [db [_ name]]
+        (let [feeds (get-in db [:rss :feeds])
+              newFeeds (dissoc feeds (utils/urlizeString name))]
+            (update-db-and-save true
+                #(assoc-in db [:rss :feeds] newFeeds)))))
+
+
 
 ; ------------------------------------------------------------
 ;navigation
@@ -236,3 +256,24 @@
         (let [categories (get-in db [:favorites :categories])
               category (first (filter #(= (:name %) (utils/urlizeString name)) categories))]
             (vec (:links category)))))
+
+
+; --------------------------------------
+; RSS
+(rf/reg-sub :rss-feeds
+    (fn [db _]
+        (get-in db [:rss :feeds] {})))
+
+(rf/reg-sub :rss-selected-name
+    (fn [db _]
+        (let [default (-> (get-in db [:rss :feeds] {}) seq first str)
+              name    (get-in db [:rss :selected] default)]
+            (utils/deurlizeString name))))
+
+(rf/reg-sub :rss-selected-url
+    :<- [:rss-selected-name]
+    :<- [:rss-feeds]
+    (fn [[name feeds] _]
+        (get feeds (utils/urlizeString name) "")))
+
+
