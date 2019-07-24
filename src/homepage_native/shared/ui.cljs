@@ -4,10 +4,13 @@
               [homepage-native.shared.utils :as utils]))
 
 
+
 ; ------------------------------------------------------------
 ; Safe margins workaround
 (def topInsetView (r/atom nil))
 (def topInset (r/atom 0))
+
+
 
 ; ------------------------------------------------------------
 ; External libraries
@@ -39,14 +42,10 @@
 (def animated-view       (r/adapt-react-class (.-View animated)))
 (def easing              (.-Easing utils/react))
 
-
-
 (defn anim-new-value
     "Creates a new animated value object with the animated value from react and a reagent atom."
     [value]
     {:anim (new animated-value value) :atom (r/atom value)})
-
-
 
 (defn anim-set-value
     "Changes the value for the animated value object for both the value and the atom."
@@ -55,8 +54,6 @@
     (-> (:anim obj)
         (animated.timing #js {:toValue newValue :duration 500 :easing (.out easing (.poly easing 6))})
         (.start)))
-
-
 
 (defn anim-get-value
     "Gets the atom value from the animated value object, this always represents the current target value."
@@ -76,6 +73,7 @@
             (anim-set-value sepAnim utils/sw))
         (do (anim-set-value heightAnim min)
             (anim-set-value sepAnim 0))))
+
 
 
 ; ------------------------------------------------------------
@@ -122,6 +120,7 @@
     "A predefined smaller header with default style."
     [label & [extraStyle]]
     (fn [] [text {:style (merge (style/style-text style/col-black "600" 26) {:margin-top 0 :margin-bottom 4 :text-align "center"} extraStyle)} label]))
+
 
 
 (defn custom-selection-input 
