@@ -6,11 +6,15 @@
               [homepage-native.shared.utils :as utils]))
 
 
-; ------------------------------------------------------------
-; Utilities
+
+;; ------------------------------------------------------------
+;; Plugins
 
 (def async-storage (.-default (js/require "@react-native-community/async-storage")))
 
+
+;; ------------------------------------------------------------
+;; Utility functions
 
 (defn save-state
     "Saves the whole app state into preferences. You can pass an app-db like map to save that instead."
@@ -19,8 +23,6 @@
         (when (not (nil? data))
             (-> (.setItem async-storage "app-db" (.stringify js/JSON (clj->js data)))
                 (.then #())))))
-
-
 
 (defn getPreference
     "Get the preference through Promise system. It immediatly return the Promise object,
@@ -32,20 +34,14 @@
                 (-> promise
                     (.then #(callback (js->clj (.parse js/JSON %) :keywordize-keys true)))))))
 
-
-
 (defn load-state
-    "Loads the app-db asynchronusly.
-     If no app-db is saved it initialize it."
+    "Loads the app-db asynchronusly. If no app-db is saved it initialize it."
     []
     (getPreference "app-db"
         (fn [data]
             (if (nil? data)
                 (rf/dispatch-sync [:initialize])
-                (rf/dispatch-sync [:replace-db data true]))
-            )))
-
-
+                (rf/dispatch-sync [:replace-db data true])))))
 
 (defn update-db-and-save
     "Calls the updateFunc, saves the updated db into preferences, and optionally syncs the db remotly"
@@ -56,68 +52,11 @@
             (networking/updateConfig result))
         result))
 
-
-
 (defn remove-vec
     "Removes a specifuc item from a vector"
     [vec item]
     (into [] (remove #{item} vec)))
 
-
-
-
-
-
-
-; ------------------------------------------------------------
-; Events
-;init
-(rf/reg-event-db :initialize 
-    (fn [_ _] {:page-current :Favorites
-              :account {:name "" :pass "" :sync false}
-              :reddit {:selected "" :subreddits []}
-              :favs {}
-              :rss-feeds [] ;Vector of Name-Link pairs
-              :rss-selected "" ;String
-              :rss-data {} ;String - Data map
-             })) 
-
-;replace
-(rf/reg-event-db :replace-db
-    (fn [db [_ new-db full-replace?]]
-        (let [cp (:page-current db)]
-            (println "got replace-db event")
-            (if full-replace?
-                (update-db-and-save false #(assoc new-db :page-current (:page-current new-db)))
-                (update-db-and-save false #(assoc new-db :page-current cp))))))
-
-;navigation
-(rf/reg-event-db :page-changed
-    (fn [db [_ newPage]] (update-db-and-save false #(assoc db :page-current newPage))))
-
-
-
-;account
-(rf/reg-event-db :account-updated
-    (fn [db [_ name pass sync]]
-        (update-db-and-save true #(assoc db :account {:name name :pass pass :sync sync}))))
-
-
-;Reddit
-(rf/reg-event-db :reddit-selected-changed
-    (fn [db [_ newSubreddit]]
-        (update-db-and-save false #(assoc-in db [:reddit :selected] newSubreddit))))
-
-(rf/reg-event-db :reddit-added-subreddit
-    (fn [db [_ sub]]
-        (update-db-and-save true #(update-in db [:reddit :subreddits] conj sub))))
-
-(rf/reg-event-db :reddit-removed-subreddit
-    (fn [db [_ sub]]
-        (update-db-and-save true #(update-in db [:reddit :subreddits] utils/remove-from-vector sub))))
-
-
-;Favorites
 (defn get-categories-names
     "[TO CLEAN] Retrieves the categories vector from a `db`."
     [db]
@@ -134,6 +73,116 @@
     (js/alert message)
     db)
 
+
+
+;; -----------------------------------------------------------------------------------------------------
+;; -----------------------------------------------------------------------------------------------------
+;; DB Subscriptions
+
+; ------------------------------------------------------------
+; Utility
+(rf/reg-sub :page-current
+    (fn [db _] (:page-current db)))
+
+(rf/reg-sub :account
+    (fn [db _] (:account db)))
+
+
+; ------------------------------------------------------------
+; Reddit
+(rf/reg-sub :reddit-subreddits ;A vector of strings
+    (fn [db _] (:subreddits (:reddit db))))
+
+(rf/reg-sub :reddit-selected ;A string
+    (fn [db _] (:selected (:reddit db))))
+
+
+; ------------------------------------------------------------
+; Favs
+(rf/reg-sub :favorites ; {:categories [{:name "Social" :order 1 :link [{:name "Facebook" :link "..."}]}]}
+    (fn [db _]
+        (:favorites db)))
+
+(rf/reg-sub :favorites2-categories ; ["Social" "Relax" "Work"]
+    (fn [db _]
+        (vec (mapv #(utils/deurlizeString (:name %)) (get-in db [:favorites :categories])))))
+
+(rf/reg-sub :favorites2-category-links ; [{:name "Facebook" :link "..."} {:name "YouTube" :link "..."}]
+    (fn [db [_ name]]
+        (let [categories (get-in db [:favorites :categories])
+              category (first (filter #(= (:name %) (utils/urlizeString name)) categories))]
+            (vec (:links category)))))
+
+
+; ------------------------------------------------------------
+; Rss
+(rf/reg-sub :rss-feeds
+    (fn [db _]
+        (get-in db [:rss :feeds] {})))
+
+(rf/reg-sub :rss-selected-name
+    (fn [db _]
+        (let [default (-> (get-in db [:rss :feeds] {}) seq first str)
+              name    (get-in db [:rss :selected] default)]
+            (utils/deurlizeString name))))
+
+(rf/reg-sub :rss-selected-url
+    :<- [:rss-selected-name]
+    :<- [:rss-feeds]
+    (fn [[name feeds] _]
+        (get feeds (utils/urlizeString name) "")))
+
+
+
+;; -----------------------------------------------------------------------------------------------------
+;; -----------------------------------------------------------------------------------------------------
+;; Events
+
+; ------------------------------------------------------------
+; Utility
+(rf/reg-event-db :initialize 
+    (fn [_ _] {:page-current :Favorites
+              :account      {:name "" :pass "" :sync false}
+              :reddit       {:selected "" :subreddits []}
+              :favorites    {:categories []}
+              :rss          {:selected "" :feeds {}}}))
+
+(rf/reg-event-db :replace-db
+    (fn [db [_ new-db full-replace?]]
+        (let [cp (:page-current db)]
+            (if full-replace?
+                (update-db-and-save false (fn [] new-db))
+                (update-db-and-save false
+                    #(assoc new-db :page-current cp))))))
+
+(rf/reg-event-db :page-changed
+    (fn [db [_ newPage]] (update-db-and-save false #(assoc db :page-current newPage))))
+
+
+; ------------------------------------------------------------
+; Account
+(rf/reg-event-db :account-updated
+    (fn [db [_ name pass sync]]
+        (update-db-and-save true #(assoc db :account {:name name :pass pass :sync sync}))))
+
+
+; ------------------------------------------------------------
+; Reddit
+(rf/reg-event-db :reddit-selected-changed
+    (fn [db [_ newSubreddit]]
+        (update-db-and-save false #(assoc-in db [:reddit :selected] newSubreddit))))
+
+(rf/reg-event-db :reddit-added-subreddit
+    (fn [db [_ sub]]
+        (update-db-and-save true #(update-in db [:reddit :subreddits] conj sub))))
+
+(rf/reg-event-db :reddit-removed-subreddit
+    (fn [db [_ sub]]
+        (update-db-and-save true #(update-in db [:reddit :subreddits] utils/remove-from-vector sub))))
+
+
+; ------------------------------------------------------------
+; Favorites
 (rf/reg-event-db :favorite2-category-added
     (fn [db [_ name]]
         (cond
@@ -202,8 +251,8 @@
                    #(assoc-in db [:favorites :categories] categories-new)))))
 
 
-; --------------------------------------
-; RSS
+; ------------------------------------------------------------
+; Rss
 (rf/reg-event-db :rss-selected-changed
     (fn [db [_ newRss]]
         (update-db-and-save true
@@ -222,58 +271,5 @@
                 #(assoc-in db [:rss :feeds] newFeeds)))))
 
 
-
-; ------------------------------------------------------------
-;navigation
-(rf/reg-sub :page-current
-    (fn [db _] (:page-current db)))
-
-
-;account
-(rf/reg-sub :account
-    (fn [db _] (:account db)))
-
-
-;reddit
-(rf/reg-sub :reddit-subreddits ;A vector of strings
-    (fn [db _] (:subreddits (:reddit db))))
-
-(rf/reg-sub :reddit-selected ;A string
-    (fn [db _] (:selected (:reddit db))))
-
-
-;favs
-(rf/reg-sub :favorites ; {:categories [{:name "Social" :order 1 :link [{:name "Facebook" :link "..."}]}]}
-    (fn [db _]
-        (:favorites db)))
-
-(rf/reg-sub :favorites2-categories ; ["Social" "Relax" "Work"]
-    (fn [db _]
-        (vec (mapv #(utils/deurlizeString (:name %)) (get-in db [:favorites :categories])))))
-
-(rf/reg-sub :favorites2-category-links ; [{:name "Facebook" :link "..."} {:name "YouTube" :link "..."}]
-    (fn [db [_ name]]
-        (let [categories (get-in db [:favorites :categories])
-              category (first (filter #(= (:name %) (utils/urlizeString name)) categories))]
-            (vec (:links category)))))
-
-
-; --------------------------------------
-; RSS
-(rf/reg-sub :rss-feeds
-    (fn [db _]
-        (get-in db [:rss :feeds] {})))
-
-(rf/reg-sub :rss-selected-name
-    (fn [db _]
-        (let [default (-> (get-in db [:rss :feeds] {}) seq first str)
-              name    (get-in db [:rss :selected] default)]
-            (utils/deurlizeString name))))
-
-(rf/reg-sub :rss-selected-url
-    :<- [:rss-selected-name]
-    :<- [:rss-feeds]
-    (fn [[name feeds] _]
-        (get feeds (utils/urlizeString name) "")))
 
 
