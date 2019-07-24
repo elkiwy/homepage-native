@@ -8,7 +8,6 @@
 
 
 
-
 ; ------------------------------------------------------------
 ; Generic Networking
 
@@ -16,9 +15,6 @@
     "Open an url inside the default browser"
     [url]
         (.openURL (.-Linking utils/react) url))
-
-
-
 
 (defn http-get-json
     "Get json data from an HTTP/GET call to an Url and call the callback after."
@@ -31,8 +27,6 @@
                 (.then #(.json %1))
                 (.then #(js->clj %1 :keywordize-keys true))
                 (.then (fn [clj-json] (callback clj-json))))))
-
-
 
 (defn http-post-json
     "Get json data from an HTTP/POST call to an Url and call the callback after."
@@ -47,8 +41,6 @@
                 (.then #(.json %1))
                 (.then #(js->clj %1 :keywordize-keys true))
                 (.then (fn [clj-json] (callback clj-json))))))
-
-
 
 (defn pack-query-parameters
     "Creates the string with all the query parameters from a map structure"
@@ -67,16 +59,12 @@
 (def addUserConfig-endpoint "addUserConfig.php")
 (def agent "32i1n4kbt52of0wdfsd9fj0hfqd0fb20rjekfbsdkba02")
 
-
-
 (defn backend-post-request
     "Calls the backend with a post request automatically packing the parameters and adding the agent."
     [endpoint queryParamsData postBodyData callback]
     (let [queryParams           (pack-query-parameters queryParamsData)
           postBodyDataWithAgent (assoc postBodyData :agent agent)]
         (http-post-json (str base-url endpoint queryParams) postBodyDataWithAgent  callback)))
-
-
 
 (defn getConfig
     "Retrieve the config object from the backend for a user and save it to the preferences."
@@ -94,8 +82,6 @@
                         (rf/dispatch-sync [:account-updated usr psw false]))
                     (when (not (nil? logAtom)) (reset! logAtom (str "Config downloaded failed with code " code))))))))
 
-
-
 (defn addConfig
     "Upload the current app-db to the backend."
     [usr psw logAtom targetDb]
@@ -110,8 +96,6 @@
                         (reset! logAtom (str "Config uploaded successfully with code " (:code responseBody)))
                         (reset! logAtom (str "Config uploaded failed with code " (:code responseBody)))))))))
 
-
-
 (defn updateConfig
     "Uploads the config to the backend, but only if the user is logged in."
     [updated-db]
@@ -119,24 +103,12 @@
         (when (not (empty? name))
             (addConfig name pass nil updated-db))))
 
-
-
 (defn try-download-state
     "If the user is logged in, try to download the app-db"
     []
     (let [account (:account @rfdb/app-db)]
         (when (not (empty? (:name account)))
             (getConfig (:name account) (:pass account) nil))))
-
-
-
-
-;(defn fetch-rss [rssName rssUrl]
-    ;(go (let [response (<! (http/get (str rss-proxy rssUrl) {:with-credentials? false}))]
-            ;(rf/dispatch [:rss-fetched-data rssName (:body response)]))))
-
-
-
 
 
 
