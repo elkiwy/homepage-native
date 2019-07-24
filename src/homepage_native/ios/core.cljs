@@ -14,24 +14,29 @@
 
 
 
-
-
+; ------------------------------------------------------------------------------------------------
+; Navigation
 (def pages {:Reddit    ctrl-reddit/main-controller
             :Account   ctrl-account/main-controller
             :Favorites ctrl-favorites/main-controller
             :Rss       ctrl-rss/main-controller})
 
-(def settings {:Reddit ctrl-reddit/settings-view :Account nil :Favorites ctrl-favorites/settings-view})
+(def settings {:Reddit ctrl-reddit/settings-view
+               :Account nil
+               :Favorites ctrl-favorites/settings-view})
 
+
+
+; ------------------------------------------------------------------------------------------------
+; Costants
 (def sidebarW (* utils/sw 0.8))
 (defonce sidebar-animvalue-x (ui/anim-new-value (* -1 sidebarW)))
 (defonce setting-animvalue-x (ui/anim-new-value utils/sw))
 
 
 
-
-
-
+; ------------------------------------------------------------------------------------------------
+; Logic Function
 (defn toggle-settings []
     (ui/anim-set-value setting-animvalue-x (if (= (ui/anim-get-value setting-animvalue-x) 0) utils/sw 0)))
     
@@ -40,12 +45,14 @@
     (ui/anim-set-value sidebar-animvalue-x (if (= (ui/anim-get-value sidebar-animvalue-x) 0) (* -1 sidebarW) 0)))
 
 
+
+; ------------------------------------------------------------------------------------------------
+; Sidebar components
 (defn back-button [f]
     (fn []
         [ui/view {:style {:width (* utils/sw 0.05) :height 50 :position "absolute"
                           :margin-top (- @ui/topInset 10) :margin-left (* utils/sw 0.05) }}
             [ui/custom-button-clear "<" {:color style/col-white :font-size 30} f]]))
-
 
 (defn sidebar-item [label key & [last?]]
     (let [f (fn [page] (do (rf/dispatch [:page-changed page]) (ui/anim-set-value sidebar-animvalue-x (* -1 sidebarW))))]
@@ -70,16 +77,14 @@
 
 
 
-
-
-
+; ------------------------------------------------------------------------------------------------
+; Main root
 (defn app-root []
     (let [page (rf/subscribe [:page-current])]
         (fn []
             [ui/view {:style {:flex-direction "column" :height "100%" :align-items "center" }}
                 ;Gradient background
                 [ui/gradient {:style {:position "absolute" :left 0 :top 0 :width "100%" :height "100%"} :colors [@style/col-accent1 @style/col-accent2] :start {:x 0 :y 0} :end {:x 1 :y 1}}]
-
 
                 ;Main working area
                 [ui/safe-area-view {:style {:width utils/sw :flex 1}}
@@ -99,40 +104,25 @@
                         [ui/custom-button-clear "=" {:color style/col-black :font-size 30}
                             toggle-sidebar]]
 
-
                     ;Page settings button
                     [ui/view {:style {:width (* utils/sw 0.1) :position "absolute" :margin-top (- @ui/topInset 10) :margin-left (* utils/sw 0.85)}}
                         [ui/custom-button-clear "+" {:color style/col-black :font-size 30}
                             toggle-settings]]
                     
-
-
                     ;Page settings
                     (when (not (nil? @page))
                         (let [p ((keyword @page) settings)]
                             [ui/animated-view {:style {:backgroundColor (str style/col-black-full "f0") :position "absolute" :paddingTop @ui/topInset 
-                                                           :top 0 :left (:anim setting-animvalue-x) :width utils/sw :height utils/sh}}
+                                                       :top 0 :left (:anim setting-animvalue-x) :width utils/sw :height utils/sh}}
                                 (if (nil? p)
                                     [ui/view [ui/custom-header2 "No settings for this page" {:color style/col-white}]]
                                     [p])
                                 [back-button toggle-settings]]))
 
                     ;sidebar
-                    [sidebar (:anim sidebar-animvalue-x) ]
-                ]
-            ])))
-
-
-
-
-
-
-
+                    [sidebar (:anim sidebar-animvalue-x) ]]])))
 
 (defn init []
-    (println "init")
     (db/load-state)
-        
-    ;(net/try-download-state)
     (.registerComponent (.-AppRegistry utils/react) "homepageNative" #(r/reactify-component app-root)))
 
