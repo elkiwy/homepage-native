@@ -62,7 +62,8 @@
           logAtom (r/atom "")]
         (fn []
             [ui/view
-                [ui/custom-header1 "Cloud Sync"]
+                [ui/custom-title "Account"]
+
                 (if (not (empty? (:name @account)))
                     [account-with-account account logAtom]
                     [account-without-account account logAtom])

@@ -141,6 +141,10 @@
 
 
 
+(defn custom-title [name & [f]]
+    (fn []
+        [view {:style {:border-bottom-width 2 :border-bottom-color @style/col-accent2}}
+            [custom-button-clear (str name) {:font-size 22} (if (nil? f) #() f)]]))
 
 
 

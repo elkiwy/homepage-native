@@ -120,7 +120,7 @@
         (fn []
             [ui/view
                 ;Header
-                [ui/custom-header1 "Favorites"]
+                [ui/custom-title "Favorites"]
 
                 ;Favorites list
                 [ui/flat-list {:data  (:categories @(rf/subscribe [:favorites]))

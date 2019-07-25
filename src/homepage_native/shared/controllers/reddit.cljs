@@ -143,12 +143,6 @@
 
 
 
-(defn title [name]
-    (fn []
-        [ui/view {:style {:border-bottom-width 2 :border-bottom-color @style/col-accent2}}
-            [ui/custom-button-clear (str "r/" name) {:font-size 22} #(toggle-selection-view)]]))
-
-
 
 (defn subs-selection [item] ^{:key item}
     (r/create-element
@@ -170,7 +164,7 @@
             [ui/view 
                 (cond
                     (empty? @subredditNameAtom)
-                        [title "Nothing"]
+                        [ui/custom-title "Nothing"]
 
                     (empty? (get-in @subredditDataAtom [@subredditNameAtom]))
                         (do (net/http-get-json (str reddit-base-url @subredditNameAtom ".json")
@@ -181,7 +175,7 @@
                         (let [posts (:children (:data (get @subredditDataAtom @subredditNameAtom )))]
                             [ui/view  {:style {:height (- utils/sh @ui/topInset )}}
                                 ;Title
-                                [title @subredditNameAtom]
+                                [ui/custom-title (str "r/" @subredditNameAtom)]
                                 ;Post list
                                 [ui/flat-list {:data (filter #(not (nil? (:data %))) posts) :render-item reddit-post :key-extractor (fn [item index] (str index))}]]))
 

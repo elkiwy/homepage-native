@@ -9,16 +9,6 @@
 
 
 
-
-
-;TODO unify this with reddit page
-(defn title [name]
-    (fn []
-        [ui/view {:style {:border-bottom-width 2 :border-bottom-color @style/col-accent2}}
-            [ui/custom-button-clear (str name) {:font-size 22} #()]]))
-
-
-
 (:rss @re-frame.db/app-db)
 
 (rf/subscribe [:rss-feeds])
@@ -66,20 +56,21 @@
         (fn []
             [ui/view
                 (cond
+                    ;No rss case
                     (empty? @feed-data-name)
-                        [title "Nothing"]
+                        [ui/custom-title "Nothing"]
 
+                    ;Loading feed case
                     (empty? (get @data-atom @feed-data-name))
                         (do (net/http-get-json (str rss-proxy (get @feeds (keyword @feed-data-name)))
                                 (fn [data] (reset! data-atom {@feed-data-name data})))
                             [ui/custom-header2 "Loading..."])
 
+                    ;Normal case
                     :else
                         (let [items (get (get @data-atom @feed-data-name) :items)]
                             [ui/view  {:style {:height (- utils/sh @ui/topInset)}}
-                                ;Title
-                                [title @feed-data-name]
-                                ;Post list
+                                [ui/custom-title (str @feed-data-name)]
                                 [ui/flat-list {:data items
                                                :render-item rss-item
                                                :key-extractor (fn [item index] (str index))}]]))
