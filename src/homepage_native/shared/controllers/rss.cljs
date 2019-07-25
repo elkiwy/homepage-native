@@ -9,23 +9,16 @@
 
 
 
-(:rss @re-frame.db/app-db)
-
-(rf/subscribe [:rss-feeds])
-(rf/subscribe [:rss-selected-name])
-(rf/subscribe [:rss-selected-url])
+;; -----------------------------------------------------------------------------------------------------
+;; Costants
 
 (def rss-proxy "https://api.rss2json.com/v1/api.json?rss_url=")
 (def data-atom (r/atom nil))
 
 
 
-
-
-
-
-
-
+;; -----------------------------------------------------------------------------------------------------
+;; Componenets
 
 
 (defn rss-item [item]
@@ -35,18 +28,34 @@
                 (fn []
                     (let [item (:item (js->clj item :keywordize-keys true) )
                           descriptionHtml (:description item)
-                          textStyle {:style (merge (style/style-text) {:flex 1 :padding 12})}
-                          ;descriptionData (map hc/as-hiccup (hc/parse-fragment descriptionHtml))
-                          ;component       (find-tag (first descriptionData) :img)
-                          ;componentData   (second component)
-                          ;componentStyle  {:float "left" :overflow "auto" :width 72 :height 72 :border-radius 2
-                                           ;:box-shadow "4px 4px 16px -10px black" :margin-right 12}
-                          ;styledComponent [:img (assoc componentData :style componentStyle)]
-                          ]
+                          textStyle {:style (merge (style/style-text) {:flex 1 :padding 12})}]
                         [ui/view {:style (merge (style/style-light-background-and-border)
                                                 {:margin-top 1 :margin-bottom 1})}
+                            [ui/touchable-opacity {:on-press #(net/http-open-url (:link item)) } 
+                                [ui/text textStyle (:title item)]]]))))))
+
                             
-                            [ui/text textStyle (:title item)]]))))))
+
+(defn settings-view
+    "React component to display the setting panel."
+    [size]
+    (let [newFeedUrlAtom (r/atom "")
+          newFeedNameAtom (r/atom "")
+          feeds (rf/subscribe [:rss-feeds])
+          remFeedNameAtom (r/atom "")]
+        (fn []
+            [ui/view
+                ;Add feed
+                [ui/custom-header1 "Add feed" {:color style/col-white}]
+                [ui/custom-text-input newFeedNameAtom {} "Name"]
+                [ui/custom-text-input newFeedUrlAtom {} "Url"]
+                [ui/custom-button "Add" {:backgroundColor @style/col-accent2}
+                    #(rf/dispatch [:rss-added @newFeedNameAtom @newFeedUrlAtom])]
+
+                [ui/custom-header1 "Remove feed" {:color style/col-white}]
+                [ui/custom-selection-input remFeedNameAtom (r/atom (map first (seq @feeds))) ]
+                [ui/custom-button "Remove" {:backgroundColor @style/col-accent2}
+                    #(rf/dispatch [:subreddit-removed @remFeedNameAtom])]])))
 
 
 (defn main-controller []
@@ -73,11 +82,6 @@
                                 [ui/custom-title (str @feed-data-name)]
                                 [ui/flat-list {:data items
                                                :render-item rss-item
-                                               :key-extractor (fn [item index] (str index))}]]))
-
-
-
-                ;[rss-feed]
-                ])))
+                                               :key-extractor (fn [item index] (str index))}]]))])))
 
 

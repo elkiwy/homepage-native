@@ -23,6 +23,7 @@
 
 (def settings {:Reddit ctrl-reddit/settings-view
                :Account nil
+               :Rss ctrl-rss/settings-view
                :Favorites ctrl-favorites/settings-view})
 
 
