@@ -9,12 +9,18 @@
 
 
 
-;Costants
+;; -----------------------------------------------------------------------------------------------------
+;; Costants
+
 (def sec-name-font-size 28) 
 (def sec-name-height (+ sec-name-font-size 20))
 (def fav-font-size 20)
 (def fav-height (+ fav-font-size 24))
 
+
+
+;; -----------------------------------------------------------------------------------------------------
+;; Utility functions
 
 (defn get-favs
     "[TO CLEAN] Retrieves the favorites links from the db."
@@ -22,6 +28,15 @@
     (map #(utils/deurlizeString (:name %))
         @(rf/subscribe [:favorites2-category-links (utils/urlizeString category)])))
 
+(defn get-first-category [favs]
+    (if (nil? (first favs))
+        nil
+        (key (first favs))))
+
+
+
+;; -----------------------------------------------------------------------------------------------------
+;; Reagent components
 
 (defn fav-section
     "The component for a single favorites section"
@@ -54,13 +69,6 @@
                                     {:color style/col-white :font-size fav-font-size :font-weight "100" :height fav-height :margin 0}
                                     #(net/http-open-url (:link fav))
                                     {:margin-top 0 :margin-bottom 0}])]])))))
-
-
-(defn get-first-category [favs]
-    (if (nil? (first favs))
-        nil
-        (key (first favs))))
-
 
 (defn settings-view []
     (let [favs (rf/subscribe [:favorites])
@@ -103,12 +111,6 @@
                     [ui/custom-button "Remove" {:backgroundColor @style/col-accent2} #(rf/dispatch [:favorite2-category-removed @removeCategoryAtom])]
                 ]
             ])))
-
-
-
-
-
-
 
 (defn main-controller
     "The main Favorites controller"
