@@ -108,9 +108,8 @@
 
                     [ui/custom-header2 "Remove a category" {:color style/col-white :margin-top 30}]
                     [ui/custom-selection-input removeCategoryAtom categories {} {} #(reset! removeCategoryAtom "")]
-                    [ui/custom-button "Remove" {:backgroundColor @style/col-accent2} #(rf/dispatch [:favorite2-category-removed @removeCategoryAtom])]
-                ]
-            ])))
+                    [ui/custom-button "Remove" {:backgroundColor @style/col-accent2} #(rf/dispatch [:favorite2-category-removed @removeCategoryAtom])]]])))
+
 
 (defn main-controller
     "The main Favorites controller"
@@ -126,8 +125,4 @@
                 [ui/flat-list {:data  (:categories @(rf/subscribe [:favorites]))
                                :style {:minHeight (- utils/sh @ui/topInset @ui/topInset ) }
                                :render-item fav-section
-                               :key-extractor (fn [item index] (str index))}]
-
-                ;Debug
-                ;[ui/view [ui/text @logAtom]]
-                ])))
+                               :key-extractor (fn [item index] (str index))}]])))
