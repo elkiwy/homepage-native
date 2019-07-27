@@ -71,7 +71,7 @@
 
                     ;Loading feed case
                     (empty? (get @data-atom @feed-data-name))
-                        (do (net/http-get-json (str rss-proxy (get @feeds (keyword @feed-data-name)))
+                        (do (net/http-get-json (str rss-proxy (get @feeds @feed-data-name))
                                 (fn [data] (reset! data-atom {@feed-data-name data})))
                             [ui/custom-header2 "Loading..."])
 

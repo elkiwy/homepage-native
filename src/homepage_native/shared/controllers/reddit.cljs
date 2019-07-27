@@ -175,7 +175,7 @@
                         (let [posts (:children (:data (get @subredditDataAtom @subredditNameAtom )))]
                             [ui/view  {:style {:height (- utils/sh @ui/topInset )}}
                                 ;Title
-                                [ui/custom-title (str "r/" @subredditNameAtom)]
+                                [ui/custom-title (str "r/" @subredditNameAtom) #(toggle-selection-view)]
                                 ;Post list
                                 [ui/flat-list {:data (filter #(not (nil? (:data %))) posts) :render-item reddit-post :key-extractor (fn [item index] (str index))}]]))
 
