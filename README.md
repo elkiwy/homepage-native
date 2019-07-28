@@ -66,11 +66,11 @@ Coming soon...
 # Screenshots
 
 <center>
-  <img src="screenshots/favorites.png" align="center" width="640"/>
-  <img src="screenshots/favorites_settings.png" align="center" width="640"/>
-  <img src="screenshots/favorites_open.png" align="center" width="640"/>
-  <img src="screenshots/reddit.png" align="center" width="640"/>
-  <img src="screenshots/reddit_open.png" align="center" width="640"/>
-  <img src="screenshots/pages.png" align="center" width="640"/>
+  <img src="screenshots/favorites.png" align="center" width="240"/>
+  <img src="screenshots/favorites_settings.png" align="center" width="240"/>
+  <img src="screenshots/favorites_open.png" align="center" width="240"/>
+  <img src="screenshots/reddit.png" align="center" width="240"/>
+  <img src="screenshots/reddit_post.png" align="center" width="240"/>
+  <img src="screenshots/pages.png" align="center" width="240"/>
 </center>
 	
